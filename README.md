@@ -1,2 +1,13 @@
-# Containers
-Creating basic STL containers to understand their internal structure
+# MyContainers
+
+Проект `MyContainers` предоставляет реализацию основных контейнеров данных на C++, аналогичных STL, но с акцентом на прозрачность кода и учебные цели. Каждый контейнер разработан для понимания внутренней механики структур данных.
+
+## Список контейнеров
+
+- **Vector**
+- **Stack**
+- **Deque**
+- **List** (двусвязный)
+- **Map**
+- **Tree** (бинарное дерево поиска)
+- **AVL Tree**
