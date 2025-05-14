@@ -10,3 +10,134 @@
 *
 *
 */
+#pragma once
+#include <stdexcept>
+
+
+template <typename T>
+class Vector {
+private:
+	T* _data;
+	size_t _capacity;
+	size_t _size;
+
+	//Private methods
+
+	void resize(size_t new_size) {
+
+	}
+
+public:
+	//Constructor and destructor
+	Vector() : capacity(10), count(0) {
+		data = new T[capacity];
+	}
+
+	~Vector() {
+		delete[] data;
+	}
+    
+	//Simple iterator
+    class Iterator {
+    private:
+        Vector<T>& _container;  // Reference to the parent container
+        T* _ptr;                // Current position pointer
+
+        // Check for out-of-bounds access
+        void _check_bounds(size_t pos) const {
+            if (pos >= _container._size) {
+                throw std::out_of_range("Iterator out of bounds");
+            }
+        }
+
+    public:
+        // Types for STL compatibility
+        using iterator_category = std::random_access_iterator_tag;
+        using value_type = T;
+        using difference_type = std::ptrdiff_t;
+        using pointer = T*;
+        using reference = T&;
+
+        Iterator(Vector<T>& container, T* ptr)
+            : _container(container), _ptr(ptr) {}
+
+        // Basic operations ---------------------------------------------------
+        reference operator*() const {
+            _check_bounds(_ptr - _container._data);  // _container._data points to the start of the array
+            return *_ptr;
+        }
+
+        pointer operator->() const {
+            _check_bounds(_ptr - _container._data);
+            return _ptr;
+        }
+
+        // Increment/Decrement ------------------------------------------------
+        Iterator& operator++() {
+            _check_bounds(_ptr - _container._data);
+            ++_ptr;
+            return *this;
+        }
+
+        Iterator operator++(int) {
+            Iterator tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+
+        Iterator& operator--() {
+            _check_bounds(_ptr - _container._data);
+            --_ptr;
+            return *this;
+        }
+
+        Iterator operator--(int) {
+            Iterator tmp = *this;
+            --(*this);
+            return tmp;
+        }
+
+        // Arithmetic operations --------------------------------------------
+        Iterator operator+(difference_type n) const {
+            Iterator tmp = *this;
+            tmp += n;
+            return tmp;
+        }
+
+        Iterator operator-(difference_type n) const {
+            Iterator tmp = *this;
+            tmp -= n;
+            return tmp;
+        }
+
+        Iterator& operator+=(difference_type n) {
+            _ptr += n;
+            _check_bounds(_ptr - _container._data);
+            return *this;
+        }
+
+        Iterator& operator-=(difference_type n) {
+            _ptr -= n;
+            _check_bounds(_ptr - _container._data);
+            return *this;
+        }
+
+        // Comparison ---------------------------------------------------------
+        bool operator==(const Iterator& other) const {
+            return _ptr == other._ptr;
+        }
+
+        bool operator!=(const Iterator& other) const {
+            return !(*this == other);
+        }
+
+    };
+
+
+
+
+
+
+
+
+};
