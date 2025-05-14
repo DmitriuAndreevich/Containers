@@ -37,7 +37,7 @@ public:
 		delete[] data;
 	}
     
-	//Simple iterator
+	//Iterator
     class Iterator {
     private:
         Vector<T>& _container;  // Reference to the parent container
@@ -134,8 +134,50 @@ public:
     };
 
 
+    T& at(size_t index) const {
+        if (index >= _size) { throw std::out_of_range("Iterator out of bounds"); }
+        return data[index];
+    }
+
+    T& back() const {
+        return data[_size - 1];
+    }
+
+    Iterator begin() const {
+        return Iterator(*this, _data);
+    }
+
+    size_t capacity() {
+        return _capacity;
+    }
+
+    const Iterator cbegin() const {
+        return Iterator(*this, _data);
+    }
+
+    const Iterator cend() const {
+        return Iterator(*this, _data + _size);
+    }
+
+    void clear() {
+        for (size_t i = 0; i < _size;++i) {
+            _data[i].~T();
+        }
+        _size = 0;
+    }
+
+    Iterator data() {
+        return Iterator(*this, _data);
+    }
+
+    void emplace(T element, const Iterator position) {
+        //...
+    }
 
 
+    Iterator end() const {
+        return Iterator(*this, _data + _size);
+    }
 
 
 
