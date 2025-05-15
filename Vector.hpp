@@ -23,8 +23,27 @@ private:
 
 	//Private methods
 
-	void resize(size_t new_size) {
+	void resize(size_t new_capacity) {
+        if (new_capacity == _capacity) { return; }
 
+        if (new_capacity < _capacity) {
+            size_t count;
+            for (size_t i = _size - 1; i > new_capacity;--i) {
+                _data[i].~T();
+                ++count;
+            }
+            _size -= count;
+        }
+        else {
+            T* new_data = new T[new_capacity];
+            for (size_t i = 0; i < _size; ++i) {
+                new_data[i] = _data[i];
+            }
+            delete[] _data;
+            _data = new_data;
+        }
+
+        _capacity = new_capacity;
 	}
 
 public:
@@ -173,7 +192,6 @@ public:
     void emplace(T element, const Iterator position) {
         //...
     }
-
 
     Iterator end() const {
         return Iterator(*this, _data + _size);
