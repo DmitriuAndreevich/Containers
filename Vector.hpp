@@ -28,19 +28,6 @@ private:
 
 	//Private methods
 
-
-	void reserve(size_t new_capacity) {
-        if (new_capacity <= _capacity) { return; }
-
-        T* new_data = new T[new_capacity];
-        for (size_t i = 0; i < _size; ++i) {
-            new_data[i] = _data[i];
-        }
-        delete[] _data;
-        _data = new_data;
-        _capacity = new_capacity;
-	}
-
 public:
 	//Constructor and destructor
 	Vector() : _capacity(10), _size(0) {
@@ -207,7 +194,7 @@ public:
         return Iterator(*this, _data);
     }
 
-    void insert(T& element, const Iterator position) {
+    void insert(T&& element, const Iterator position) {
         if(position < begin() || position > end()){
             throw std::out_of_range("Iterator out of bounds");
         }
@@ -225,12 +212,42 @@ public:
         ++_size;
     }
 
-    void emplace_back() {
-        //...
+    void emplace_back(T&& element) {
+        if (_size + 1 > _capacity) {
+            reserve(_capacity == 0 ? 1 : _capacity * 2);
+        }
+
+        _data[_size] = std::move(element);
+        ++_size;
+    }
+
+    bool empty() {
+        return _size == 0;
     }
 
     Iterator end() const {
         return Iterator(*this, _data + _size);
     }
+
+    void erase(Iterator& first, Iterator& last) {
+        //...
+    }
+
+    void erase(Iterator& pos) {
+        //..
+    }
+
+    void reserve(size_t new_capacity) {
+        if (new_capacity <= _capacity) { return; }
+
+        T* new_data = new T[new_capacity];
+        for (size_t i = 0; i < _size; ++i) {
+            new_data[i] = _data[i];
+        }
+        delete[] _data;
+        _data = new_data;
+        _capacity = new_capacity;
+    }
+
 
 };
