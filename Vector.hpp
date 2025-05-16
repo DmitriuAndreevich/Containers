@@ -28,37 +28,27 @@ private:
 
 	//Private methods
 
-	void resize(size_t new_capacity) {
-        if (new_capacity == _capacity) { return; }
 
-        if (new_capacity < _capacity) {
-            size_t count;
-            for (size_t i = _size - 1; i > new_capacity;--i) {
-                _data[i].~T();
-                ++count;
-            }
-            _size -= count;
-        }
-        else {
-            T* new_data = new T[new_capacity];
-            for (size_t i = 0; i < _size; ++i) {
-                new_data[i] = _data[i];
-            }
-            delete[] _data;
-            _data = new_data;
-        }
+	void reserve(size_t new_capacity) {
+        if (new_capacity <= _capacity) { return; }
 
+        T* new_data = new T[new_capacity];
+        for (size_t i = 0; i < _size; ++i) {
+            new_data[i] = _data[i];
+        }
+        delete[] _data;
+        _data = new_data;
         _capacity = new_capacity;
 	}
 
 public:
 	//Constructor and destructor
-	Vector() : capacity(10), count(0) {
-		data = new T[capacity];
+	Vector() : _capacity(10), _size(0) {
+		_data = new T[_capacity];
 	}
 
 	~Vector() {
-		delete[] data;
+		delete[] _data;
 	}
     
 	//Iterator
@@ -78,6 +68,8 @@ public:
         // Types for STL compatibility
         using iterator_category = std::random_access_iterator_tag;
         using value_type = T;
+        //difference_type — это безопасный и универсальный способ работать с расстояниями между итераторами, 
+        // поддерживающий все возможные сценарии, включая отрицательные значения
         using difference_type = std::ptrdiff_t;
         using pointer = T*;
         using reference = T&;
@@ -134,6 +126,10 @@ public:
             return tmp;
         }
 
+        difference_type operator-(const Iterator& other) const {
+            return _ptr - other._ptr;
+        }
+
         Iterator& operator+=(difference_type n) {
             _ptr += n;
             _check_bounds(_ptr - _container._data);
@@ -155,16 +151,33 @@ public:
             return !(*this == other);
         }
 
+        bool operator<(const Iterator& other) const {
+            return _ptr < other._ptr;
+        }
+
+        bool operator>(const Iterator& other) const {
+            return other < *this;
+        }
+
+        bool operator<=(const Iterator& other) const {
+            return !(other < *this);
+        }
+
+        bool operator>=(const Iterator& other) const {
+            return !(*this < other);
+        }
+
     };
+
 
 
     T& at(size_t index) const {
         if (index >= _size) { throw std::out_of_range("Iterator out of bounds"); }
-        return data[index];
+        return _data[index];
     }
 
     T& back() const {
-        return data[_size - 1];
+        return _data[_size - 1];
     }
 
     Iterator begin() const {
@@ -194,15 +207,30 @@ public:
         return Iterator(*this, _data);
     }
 
-    void emplace(T element, const Iterator position) {
+    void insert(T& element, const Iterator position) {
+        if(position < begin() || position > end()){
+            throw std::out_of_range("Iterator out of bounds");
+        }
+
+        if (_size + 1 > _capacity) {
+            reserve(  _capacity == 0 ? 1 : _capacity * 2);
+        }
+
+        size_t pos_index = position - begin();
+        for (size_t i = _size - 1; i >= pos_index; --i) {
+            _data[i + 1] = std::move(_data[i]);
+        }
+
+        _data[pos_index] = std::move(element);
+        ++_size;
+    }
+
+    void emplace_back() {
         //...
     }
 
     Iterator end() const {
         return Iterator(*this, _data + _size);
     }
-
-
-
 
 };
