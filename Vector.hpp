@@ -38,7 +38,7 @@ public:
 		delete[] _data;
 	}
     
-	//Iterator
+	//-----------------------------Iterator
     class Iterator {
     private:
         Vector<T>& _container;  // Reference to the parent container
@@ -155,6 +155,7 @@ public:
         }
 
     };
+    //-----------------------------
 
 
 
@@ -194,30 +195,21 @@ public:
         return Iterator(*this, _data);
     }
 
-    void insert(T&& element, const Iterator position) {
-        if(position < begin() || position > end()){
-            throw std::out_of_range("Iterator out of bounds");
-        }
-
-        if (_size + 1 > _capacity) {
-            reserve(  _capacity == 0 ? 1 : _capacity * 2);
-        }
-
-        size_t pos_index = position - begin();
-        for (size_t i = _size - 1; i >= pos_index; --i) {
-            _data[i + 1] = std::move(_data[i]);
-        }
-
-        _data[pos_index] = std::move(element);
-        ++_size;
-    }
-
     void emplace_back(T&& element) {
         if (_size + 1 > _capacity) {
             reserve(_capacity == 0 ? 1 : _capacity * 2);
         }
 
         _data[_size] = std::move(element);
+        ++_size;
+    }
+
+    void emplace_back(T& element) {
+        if (_size + 1 > _capacity) {
+            reserve(_capacity == 0 ? 1 : _capacity * 2);
+        }
+
+        _data[_size] = element;
         ++_size;
     }
 
@@ -230,11 +222,97 @@ public:
     }
 
     void erase(Iterator& first, Iterator& last) {
-        //...
+        if (first < begin() || first > end() || first > last) {
+            throw std::out_of_range("Iterator out of bounds");
+        }
+
+        for (auto it = first; it != last; ++it) {
+            it->~T();
+        }
+
+        size_t difference = last - first;
+        for (auto it = last + 1; it != end(); ++it) {
+            *(it - difference) = std::move(*it);
+        }
+
+        _size -= difference;
+        for (size_t i = _size; i < _size + difference; ++i) {
+            _data[i].~T();
+        }
     }
 
-    void erase(Iterator& pos) {
-        //..
+    void erase(Iterator& position) {
+        if (position < begin() || position > end()) {
+            throw std::out_of_range("Iterator out of bounds");
+        }
+
+        //delete current object
+        position->~T();
+
+        for (auto it = position; it != end() - 1; ++it) {
+            *it = std::move(*(it + 1));
+        }
+
+        --_size;
+        _data[_size].~T();
+    }
+
+    T* front() {
+        return (!empty()) ? &_data[0] : nullptr;
+    }
+
+    void insert(T&& element, const Iterator position) {
+        if (position < begin() || position > end()) {
+            throw std::out_of_range("Iterator out of bounds");
+        }
+
+        if (_size + 1 > _capacity) {
+            reserve(_capacity == 0 ? 1 : _capacity * 2);
+        }
+
+        size_t pos_index = position - begin();
+        for (size_t i = _size - 1; i >= pos_index; --i) {
+            _data[i + 1] = std::move(_data[i]);
+        }
+
+        _data[pos_index] = std::move(element);
+        ++_size;
+    }
+
+    void insert(T& element, const Iterator position) {
+        if (position < begin() || position > end()) {
+            throw std::out_of_range("Iterator out of bounds");
+        }
+
+        if (_size + 1 > _capacity) {
+            reserve(_capacity == 0 ? 1 : _capacity * 2);
+        }
+
+        size_t pos_index = position - begin();
+        for (size_t i = _size - 1; i >= pos_index; --i) {
+            _data[i + 1] = _data[i];
+        }
+
+        _data[pos_index] = element;
+        ++_size;
+    }
+
+    size_t max_size() {
+        return _capacity;
+    }
+
+    void pop_back() {
+       if(!empty()) {
+        _data[_size - 1].~T();
+        }
+    }
+
+    void push_back(T&& element) {
+        emplace_back(element);
+    }
+
+    void push_back(T& element) {
+        emplace_back(element);
     }
 
     void reserve(size_t new_capacity) {
@@ -249,5 +327,22 @@ public:
         _capacity = new_capacity;
     }
 
+    void resize(size_t new_size, T& default_value){
+        if (new_size < _size) {
+            for (size_t i = new_size; i < _size; ++i) {
+                _data[i].~T();
+            }
+            _size = new_size;
+            return;
+        }
+
+        if (new_size > _capacity) {
+            reserve(new_size);
+        }
+        for (size_t i = _size; i < _capacity; ++i) {
+            _data[i] = default_value;
+        }
+        _size = new_size;
+    }
 
 };
