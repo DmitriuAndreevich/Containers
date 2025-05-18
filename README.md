@@ -5,6 +5,7 @@ The `MyContainers` project provides a C++ implementation of basic data container
 ## Список контейнеров
 
 - **Vector**
+- **String**
 - **Stack**
 - **Deque**
 - **doubly linked LIST**
