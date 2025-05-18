@@ -16,7 +16,6 @@
 *    - Not thread-safe.
 */
 
-
 /*
 *  type T must have :
 *   - copy constructor
@@ -29,32 +28,32 @@
 template <typename T>
 class Vector {
 private:
-	T* _data;
-	size_t _capacity;
-	size_t _size;
+    T* _data;
+    size_t _capacity;
+    size_t _size;
 
 
     bool is_trivial_T = std::is_trivially_destructible_v<T>;
-	//Private methods
+    //Private methods
 
 public:
-	//Constructor and destructor
-	Vector() : _capacity(10), _size(0) {
-		_data = new T[_capacity];
-	}
+    //Constructor and destructor
+    Vector() : _capacity(10), _size(0) {
+        _data = new T[_capacity];
+    }
 
-    Vector(const Vectot<T> vec) : _size(vec._size), _capacity(vec._capacity) {
+    Vector(const Vector<T> vec) : _size(vec._size), _capacity(vec._capacity) {
         _data = new T[_capacity];
         for (size_t i = 0; i < _size; ++i) {
             new (&_data[i]) T(vec._data[i]);
         }
     }
 
-	~Vector() {
-		delete[] _data;
-	}
-    
-	//--------------------------------- I T E R A T O R -----------------------------------
+    ~Vector() {
+        delete[] _data;
+    }
+
+    //--------------------------------- I T E R A T O R -----------------------------------
     class Iterator {
     private:
         Vector<T>& _container;  // Reference to the parent container
@@ -201,7 +200,7 @@ public:
     }
 
     void clear() {
-        if(!is_trivial_T) { //if T not trivial
+        if (!is_trivial_T) { //if T not trivial
             for (size_t i = 0; i < _size;++i) {
                 _data[i].~T();
             }
@@ -310,11 +309,11 @@ public:
     }
 
     void pop_back() {
-       if(!empty()) {
-           if (!is_trivial_T) {
-               _data[_size - 1].~T();
-           }
-           --_size;
+        if (!empty()) {
+            if (!is_trivial_T) {
+                _data[_size - 1].~T();
+            }
+            --_size;
         }
     }
 
@@ -334,7 +333,7 @@ public:
         _capacity = new_capacity;
     }
 
-    void resize(size_t new_size,const T& default_value){
+    void resize(size_t new_size, const T& default_value) {
         if (new_size < _size) {
             if (!is_trivial_T) {
                 for (size_t i = new_size; i < _size; ++i) {
@@ -360,6 +359,12 @@ public:
 
     size_t size() {
         return _size;
+    }
+
+    void swap(Vector& other) noexcept {
+        std::swap(_data, other._data);
+        std::swap(_size, other._size);
+        std::swap(_capacity, other._capacity);
     }
 
     //------------------------------- O P E R A T O R S -------------------------------------------------
@@ -389,6 +394,8 @@ public:
             return *this;
         }
 
+        delete[] _data;
+
         _data = std::move(right._data);
         _size = right._size;
         _capacity = right._capacity;
@@ -399,6 +406,5 @@ public:
 
         return *this;
     }
-
 
 };
