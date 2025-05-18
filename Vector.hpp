@@ -224,7 +224,7 @@ public:
         }
 
         //placement new is a special variant of the new operator that allows you to create an object in already allocated memory
-        new (&_data[_size]) T(element);
+        new (&_data[_size]) T(element); 
         ++_size;
     }
 
@@ -261,24 +261,26 @@ public:
     }
 
     void erase(Iterator& position) {
-        if (position < begin() || position >= end()) {
-            throw std::out_of_range("Iterator out of bounds");
-        }
+    if (position < begin() || position >= end()) {
+        throw std::out_of_range("Iterator out of bounds");
+    }
 
-        //delete current object
+    size_t index = position - begin();
+
+    //delete current object
+    if (!is_trivial_T) {
+        _data[index].~T();
+    }
+
+    for (size_t i = index; i < _size - 1; ++i) {
+        new (&_data[i]) T(std::move(_data[i + 1]));
         if (!is_trivial_T) {
-            position->~T();
-        }
-
-        for (auto it = position; it != end() - 1; ++it) {
-            new (it) T(std::move(*(it + 1)));
-        }
-
-        --_size;
-        if (!is_trivial_T) {
-            _data[_size].~T();
+            _data[i + 1].~T();
         }
     }
+
+    --_size;
+}
 
     T& front() {
         if (empty()) { throw std::out_of_range("Vector is empty"); }
