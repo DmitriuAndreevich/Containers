@@ -33,8 +33,7 @@ private:
     size_t _size;
 
 
-    bool is_trivial_T = std::is_trivially_destructible_v<T>;
-    //Private methods
+    static constexpr bool is_trivial_T = std::is_trivially_destructible_v<T>;
 
 public:
     //Constructor and destructor
@@ -42,14 +41,26 @@ public:
         _data = new T[_capacity];
     }
 
-    Vector(const Vector<T> vec) : _size(vec._size), _capacity(vec._capacity) {
+    Vector(const Vector<T>& vec) : _size(vec._size), _capacity(vec._capacity) {
         _data = new T[_capacity];
         for (size_t i = 0; i < _size; ++i) {
             new (&_data[i]) T(vec._data[i]);
         }
     }
 
+    Vector(Vector<T>&& vec) noexcept
+        : _data(vec._data), _capacity(vec._capacity), _size(vec._size) {
+        vec._data = nullptr;
+        vec._capacity = 0;
+        vec._size = 0;
+    }
+
     ~Vector() {
+        if (!is_trivial_T) {
+            for (size_t i = 0; i < _size; ++i) {
+                _data[i].~T();
+            }
+        }
         delete[] _data;
     }
 
@@ -70,8 +81,8 @@ public:
         // Types for STL compatibility
         using iterator_category = std::random_access_iterator_tag;
         using value_type = T;
-        //difference_type — это безопасный и универсальный способ работать с расстояниями между итераторами, 
-        // поддерживающий все возможные сценарии, включая отрицательные значения
+        //difference_type is a safe and generic way to work with distances between iterators,
+        //supporting all possible scenarios, including negative values.
         using difference_type = std::ptrdiff_t;
         using pointer = T*;
         using reference = T&;
@@ -104,8 +115,8 @@ public:
         }
 
         Iterator& operator--() {
-            _check_bounds(_ptr - _container._data);
             --_ptr;
+            _check_bounds(_ptr - _container._data);
             return *this;
         }
 
@@ -172,14 +183,13 @@ public:
     };
     //-------------------------------------------------------------------------------------
 
-
-
-    T& at(size_t index) const {
-        if (index >= _size) { throw std::out_of_range("Iterator out of bounds"); }
+    const T& at(size_t index) const {
+        if (index >= _size) { throw std::out_of_range("Index out of range"); }
         return _data[index];
     }
 
-    T& back() const {
+    const T& back() const {
+        if (empty()) { throw std::out_of_range("Vector is empty"); }
         return _data[_size - 1];
     }
 
@@ -187,16 +197,8 @@ public:
         return Iterator(*this, _data);
     }
 
-    size_t capacity() {
+    size_t capacity() const {
         return _capacity;
-    }
-
-    const Iterator cbegin() const {
-        return Iterator(*this, _data);
-    }
-
-    const Iterator cend() const {
-        return Iterator(*this, _data + _size);
     }
 
     void clear() {
@@ -208,17 +210,12 @@ public:
         _size = 0;
     }
 
-    Iterator data() {
-        return Iterator(*this, _data);
+    T* data() {
+        return _data;
     }
 
-    void emplace_back(T&& element) {
-        if (_size + 1 > _capacity) {
-            reserve(_capacity == 0 ? 1 : _capacity * 2);
-        }
-
-        _data[_size] = std::move(element);
-        ++_size;
+    const T* data() const {
+        return _data;
     }
 
     void emplace_back(const T& element) {
@@ -226,11 +223,11 @@ public:
             reserve(_capacity == 0 ? 1 : _capacity * 2);
         }
 
-        _data[_size] = element;
+        new (&_data[_size]) T(element);
         ++_size;
     }
 
-    bool empty() {
+    bool empty() const {
         return _size == 0;
     }
 
@@ -239,7 +236,7 @@ public:
     }
 
     void erase(Iterator& first, Iterator& last) {
-        if (first < begin() || first > end() || first > last) {
+        if (first < begin() || first >= end() || first > last) { //end points out of bounds array
             throw std::out_of_range("Iterator out of bounds");
         }
 
@@ -250,8 +247,8 @@ public:
         }
 
         size_t difference = last - first;
-        for (auto it = last + 1; it != end(); ++it) {
-            *(it - difference) = std::move(*it);
+        for (auto it = last; it != end(); ++it) {
+            new (it - difference) T(std::move(*it));
         }
 
         _size -= difference;
@@ -263,7 +260,7 @@ public:
     }
 
     void erase(Iterator& position) {
-        if (position < begin() || position > end()) {
+        if (position < begin() || position >= end()) {
             throw std::out_of_range("Iterator out of bounds");
         }
 
@@ -273,7 +270,7 @@ public:
         }
 
         for (auto it = position; it != end() - 1; ++it) {
-            *it = std::move(*(it + 1));
+            new (it) T(std::move(*(it + 1)));
         }
 
         --_size;
@@ -282,8 +279,14 @@ public:
         }
     }
 
-    T* front() {
-        return (!empty()) ? &_data[0] : nullptr;
+    T& front() {
+        if (empty()) { throw std::out_of_range("Vector is empty"); }
+        return _data[0];
+    }
+
+    const T& front() const {
+        if (empty()) { throw std::out_of_range("Vector is empty"); }
+        return _data[0];
     }
 
     void insert(const T& element, const Iterator position) {
@@ -296,16 +299,12 @@ public:
         }
 
         size_t pos_index = position - begin();
-        for (size_t i = _size - 1; i >= pos_index; --i) {
-            _data[i + 1] = _data[i];
+        for (size_t i = _size; i > pos_index; --i) {
+            new (&_data[i]) T(std::move(_data[i - 1]));
         }
 
-        _data[pos_index] = element;
+        new (&_data[pos_index]) T(element);
         ++_size;
-    }
-
-    size_t max_size() {
-        return _capacity;
     }
 
     void pop_back() {
@@ -326,7 +325,13 @@ public:
 
         T* new_data = new T[new_capacity];
         for (size_t i = 0; i < _size; ++i) {
-            new_data[i] = _data[i];
+            new (&new_data[i]) T(_data[i]);
+        }
+        
+        if (!is_trivial_T) {
+            for (size_t i = 0; i < _size; ++i) {
+                _data[i].~T();
+            }
         }
         delete[] _data;
         _data = new_data;
@@ -354,10 +359,24 @@ public:
     }
 
     void shrink_to_fit() {
+        if(_capacity == _size) { return; }
+
+        T* new_data = new T[_size];
+        for (size_t i = 0; i < _size; ++i) {
+            new (&new_data[i]) T(_data[i]);
+        }
+
+        if (!is_trivial_T) {
+            for (size_t i = 0; i < _size; ++i) {
+                _data[i].~T();
+            }
+        }
+        delete[] _data;
+        _data = new_data;
         _capacity = _size;
     }
 
-    size_t size() {
+    size_t size() const {
         return _size;
     }
 
@@ -369,23 +388,19 @@ public:
 
     //------------------------------- O P E R A T O R S -------------------------------------------------
 
+    const T& operator[](size_t index) const {
+        return _data[index];
+    }
+
     T& operator[](size_t index) {
         return _data[index];
     }
 
-    Vector& operator=(const Vector& right) {
-        if (this == &right) { 
-            return *this;
+    Vector& operator=(const Vector& other) {
+        if (this != &other) {
+            Vector temp(other);
+            swap(temp);
         }
-        delete[] _data;
-        _size = right._size;
-        _capacity = right._capacity;
-
-        _data = new T[_capacity];
-        for (size_t i = 0; i < _size; ++i) {
-            _data[i] = right._data[i];
-        }
-
         return *this;
     }
 
@@ -396,7 +411,7 @@ public:
 
         delete[] _data;
 
-        _data = std::move(right._data);
+        _data = right._data;
         _size = right._size;
         _capacity = right._capacity;
 
