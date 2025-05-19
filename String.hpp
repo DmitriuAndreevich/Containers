@@ -63,7 +63,6 @@ public:
 	}
 
 
-
 	bool is_empty() const {
 		return _capacity == 0;
 	}
@@ -86,15 +85,45 @@ public:
 
 	//------------------------------- O P E R A T O R S -------------------------------------------------
 	String& operator=(const String& other) {
+		_size = other._size;
+		_capacity = other._capacity;
 
+		_data = new char[_capacity];
+		for (size_t i = 0; i < _size;++i) {
+			_data[i] = other._data[i];
+		}
+		if (_size + 1 >= _capacity) {
+			reserve(_capacity + _capacity / 2);
+		}
+		_data[_size] = '\0';
+		++_size;
 	}
 
 	String& operator=(String&& other) {
+		_size = other._size;
+		_capacity = other._capacity;
+		_data = other._data;
 
+		other._size = 0;
+		other._capacity = 0;
+		other._data = nullptr;
 	}
 
 	String& operator+=(const String& other) {
-		
+		if (_size + other.size() >= _capacity) {
+			reserve(_capacity + other.size() + _capacity/2);
+		}
+
+		for (size_t i = 0; i < other.size(); ++i) {
+			_data[_size + i] = other._data[i];
+			++_size;
+		}
+
+		if (_size + 1 >= _capacity) {
+			reserve(_capacity + _capacity / 2);
+		}
+		_data[_size] = '\0';
+		++_size;
 	}
 
 	bool operator==(const String& other) const {
