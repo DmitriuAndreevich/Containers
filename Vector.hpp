@@ -396,6 +396,9 @@ public:
     }
 
     T& operator[](size_t index) {
+        if (index >= _size) {
+            throw std::out_of_range("Index out of bounds");
+        }
         return _data[index];
     }
 
