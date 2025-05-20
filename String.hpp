@@ -5,6 +5,7 @@
 * 
 */
 #pragma once
+#include <stdexcept>
 
 
 class String {
@@ -128,6 +129,13 @@ public:
 		_data[_size] = '\0';
 
 		return *this;
+	}
+
+	char operator[](size_t index) {
+		if (index >= _size) {
+			throw std::out_of_range("Index out of bounds");
+		}
+		return _data[index];
 	}
 
 	bool operator==(const String& other) const {
