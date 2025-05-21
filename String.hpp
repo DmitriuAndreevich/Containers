@@ -25,6 +25,10 @@ public:
 
 	String(const char* str) : _size(0), _capacity(10) {
 		if (str == nullptr) {
+			throw std::invalid_argument("nullptr passed to constructor");
+		}
+
+		if (str == nullptr) {
 			_size = 0;
 			_capacity = 1;
 			_data = new char[_capacity];
@@ -53,7 +57,7 @@ public:
 		}
 	}
 
-	String(String&& other) : _data(other._data),_size(other._size),_capacity(other._capacity) {
+	String(String&& other) noexcept : _data(other._data),_size(other._size),_capacity(other._capacity) {
 		other._data = nullptr;
 		other._size = 0;
 		other._capacity = 0;
@@ -64,8 +68,23 @@ public:
 	}
 
 
+	char& at(size_t index) {
+		if (index >= _size) {
+			throw std::out_of_range("Index out of bounds");
+		}
+		return _data[index];
+	}
+
+	const char& at(size_t index) const {
+		if (index >= _size) {
+			throw std::out_of_range("Index out of bounds");
+		}
+		return _data[index];
+	}
+
+
 	bool is_empty() const {
-		return _capacity == 0;
+		return _size == 0;
 	}
 
 	size_t size() const {
@@ -73,15 +92,49 @@ public:
 	}
 
 	void reserve(size_t new_capacity) {
+		if (new_capacity <= _capacity) { return; }
+
+		char* new_data = new char[new_capacity + 1];
+		for (size_t i = 0; i < _size;++i) {
+			new_data[i] = _data[i];
+		}
+		new_data[_size] = '\0';
+
+		delete[] _data;
+		_data = new_data;
+		_capacity = new_capacity + 1;
 
 	}
 
-	void resize(size_t new_size, String& default_value) {
+	void resize(size_t new_size, char default_value) {
+		if (new_size == _size) { return; }
+
+		if (new_size < _size) {
+			_size = new_size;
+			_data[_size] = '\0';
+		}
+		else {
+			reserve(new_size);
+			for (size_t i = _size; i < new_size; ++i) {
+				_data[i] = default_value;
+			}
+			_size = new_size;
+			_data[_size] = '\0';
+		}
 
 	}
 
 	void shrink_to_fit() {
+		if (_capacity == _size + 1) return;
 
+		char* new_data = new char[_size + 1];
+		for (size_t i = 0; i < _size; ++i) {
+			new_data[i] = _data[i];
+		}
+		new_data[_size] = '\0';
+
+		delete[] _data;
+		_capacity = _size + 1;
 	}
 
 	//------------------------------- O P E R A T O R S -------------------------------------------------
@@ -131,13 +184,15 @@ public:
 		return *this;
 	}
 
-	char operator[](size_t index) {
-		if (index >= _size) {
-			throw std::out_of_range("Index out of bounds");
-		}
-		return _data[index];
+	char& operator[](size_t index) {
+		return at(index);
 	}
 
+	const char& operator[](size_t index) const {
+		return at(index);
+	}
+
+	
 	bool operator==(const String& other) const {
 		if (_size != other._size) {
 			return false;
