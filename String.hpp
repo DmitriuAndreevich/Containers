@@ -23,6 +23,10 @@
 #include <stdexcept>
 
 
+
+#include <iostream>
+
+
 class String {
 private:
 	char* _data;
@@ -102,10 +106,10 @@ public:
 
 
 		for (size_t i = pos; i < _size; ++i) {
-			_data[i] = _data[i + n];
 			if (i + n == _size) {
 				break;
 			}
+			_data[i] = _data[i + n];
 		}
 		_size -= n;
 		_data[_size] = '\0';
@@ -116,12 +120,18 @@ public:
 			throw std::out_of_range("Index out of bounds");
 		}
 
+		if (len != str.size()) {
+			throw std::out_of_range("Incorrect length of input str");
+		}
+
 		if (pos + len >= _capacity) {
 			reserve((pos + len + 1) * 2);
 		}
 
-		for (size_t i = pos; i < len; ++i) {
-			_data[i] = str._data[i - pos];
+		size_t j = 0;
+		for (size_t i = pos; j < len; ++i) {
+			_data[i] = str._data[j];
+			++j;
 		}
 
 		_size = std::max(_size, pos + len);
@@ -139,19 +149,17 @@ public:
 	}
 
 	void pop_back() {
+		if(_size == 0){ throw std::out_of_range("Removing an element from an empty array"); }
 		--_size;
 	}
 
 	void clear() {
-		delete[] _data;
-		_data = new char[1];
-		_capacity = 1;
 		_size = 0;
-		_data[_size] = '\0';
+		_data[0] = '\0';
 	}
 
 	void insert(size_t pos, const String& str) {
-		if (pos >= _size) {
+		if (pos > _size) {
 			throw std::out_of_range("Index out of bounds");
 		}
 
@@ -161,15 +169,16 @@ public:
 			reserve((_size + other_size + 1) * 2);
 		}
 
-		for (size_t i = _size + other_size - 1; i >= pos; --i) {
-			_data[i] = _data[i - other_size];
-			if (i - other_size == 0) {
-				for (size_t j = 0; j < i; ++j) {
-					_data[j] = str._data[j];
-				}
-				break;
-			}
+		for (size_t i = _size; i > pos; --i) {
+			_data[i + other_size - 1] = _data[i - 1];
 		}
+
+		size_t j = 0;
+		for (size_t i = pos; j < other_size; ++i) {
+			_data[i] = str._data[j];
+			++j;
+		}
+
 
 		_size += other_size;
 		_data[_size] = '\0';
@@ -210,7 +219,7 @@ public:
 			_data[_size] = '\0';
 		}
 		else {
-			reserve(new_size);
+			reserve(new_size + 1);
 			for (size_t i = _size; i < new_size; ++i) {
 				_data[i] = default_value;
 			}
