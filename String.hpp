@@ -23,10 +23,6 @@
 #include <stdexcept>
 
 
-
-#include <iostream>
-
-
 class String {
 private:
 	char* _data;
