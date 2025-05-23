@@ -23,6 +23,10 @@
 #include <stdexcept>
 
 
+
+#include <iostream>
+
+
 class String {
 private:
 	char* _data;
@@ -70,7 +74,7 @@ public:
 		}
 	}
 
-	String(String&& other) noexcept : _data(other._data),_size(other._size),_capacity(other._capacity) {
+	String(String&& other) noexcept : _data(other._data), _size(other._size), _capacity(other._capacity) {
 		other._data = nullptr;
 		other._size = 0;
 		other._capacity = 0;
@@ -95,42 +99,48 @@ public:
 		return _data[index];
 	}
 
-	void erase(size_t pos, size_t n) {
-		if (pos >= _size) {
+	void erase(size_t pos_start, size_t pos_end) {
+		if (pos_start >= _size || pos_end >= _size || pos_start > pos_end) {
 			throw std::out_of_range("Index out of bounds");
 		}
 
+		const size_t count_del_elem = pos_end - pos_start + 1;
 
-		for (size_t i = pos; i < _size; ++i) {
-			if (i + n == _size) {
-				break;
-			}
-			_data[i] = _data[i + n];
+		for (size_t i = pos_end + 1; i < _size;++i) {
+			_data[i - count_del_elem] = _data[i];
 		}
-		_size -= n;
+
+		_size -= count_del_elem;
 		_data[_size] = '\0';
 	}
 
-	void replace(size_t pos, size_t len, const String& str) {
-		if (pos >= _size) {
+	void replace(size_t pos_start, size_t pos_end, const String& str) {
+		if (pos_start > _size || pos_end > _size || pos_start > pos_end) {
 			throw std::out_of_range("Index out of bounds");
 		}
 
-		if (len != str.size()) {
-			throw std::out_of_range("Incorrect length of input str");
+		const size_t count_del_elem = pos_end - pos_start + 1;
+
+		if (_size - count_del_elem + str._size >= _capacity) {
+			reserve((_size - count_del_elem + str._size + 1) * 2);
 		}
 
-		if (pos + len >= _capacity) {
-			reserve((pos + len + 1) * 2);
+
+		long long diff = 0;
+		diff = str._size - count_del_elem;
+
+
+		for (size_t i = pos_end + 1; i < _size; ++i) {
+			_data[i + diff] = _data[i];
 		}
 
 		size_t j = 0;
-		for (size_t i = pos; j < len; ++i) {
+		for (size_t i = pos_start; j < str._size; ++i) {
 			_data[i] = str._data[j];
 			++j;
 		}
 
-		_size = std::max(_size, pos + len);
+		_size += diff;
 		_data[_size] = '\0';
 	}
 
@@ -145,7 +155,7 @@ public:
 	}
 
 	void pop_back() {
-		if(_size == 0){ throw std::out_of_range("Removing an element from an empty array"); }
+		if (_size == 0) { throw std::out_of_range("Removing an element from an empty array"); }
 		--_size;
 	}
 
@@ -268,7 +278,7 @@ public:
 		other._size = 0;
 		other._capacity = 0;
 		other._data = nullptr;
-		
+
 		return *this;
 	}
 
@@ -293,7 +303,7 @@ public:
 	const char& operator[](size_t index) const {
 		return at(index);
 	}
-	
+
 	bool operator==(const String& other) const {
 		if (_size != other._size) {
 			return false;
@@ -311,7 +321,7 @@ public:
 		return !(*this == other);
 	}
 
-	friend String operator+(const String& left, const String& right){
+	friend String operator+(const String& left, const String& right) {
 		String tmp(left);
 		tmp += right;
 		return tmp;
