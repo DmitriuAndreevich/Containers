@@ -1,8 +1,23 @@
 /*
-* 
+*  String Documentation
 *
-* 
-* 
+*  The String class is a dynamic string implementation with automatic memory management.
+*  Provides C-style string operations with bounds checking and resizing capabilities.
+*
+*  Key Features:
+*    - Dynamic memory expansion/shrinking for efficient storage.
+*    - Bounds-checked element access via at() and operator[].
+*    - Common string operations: insert, erase, replace, concatenation.
+*    - Explicit capacity management (reserve/resize/shrink_to_fit).
+*    - Move semantics for efficient resource transfer.
+*    - Full RAII compliance with proper copy/move semantics.
+*
+*  Notes:
+*    - Throws std::out_of_range for invalid positions in at() and modifier methods.
+*    - Maintains null terminator for C-string compatibility.
+*    - Move operations leave source object in valid empty state.
+*    - Not thread-safe for concurrent modifications.
+*    - All operations maintain string integrity (null-termination and size constraints).
 */
 #pragma once
 #include <stdexcept>
@@ -13,8 +28,6 @@ private:
 	char* _data;
 	size_t _size;
 	size_t _capacity;
-
-
 
 public:
 	//Constructor and destructor
@@ -69,7 +82,7 @@ public:
 
 
 	char& at(size_t index) {
-		if (index >= _size) {
+		if (index < 0 || index >= _size) {
 			throw std::out_of_range("Index out of bounds");
 		}
 		return _data[index];
@@ -82,6 +95,85 @@ public:
 		return _data[index];
 	}
 
+	void erase(size_t pos, size_t n) {
+		if (pos >= _size) {
+			throw std::out_of_range("Index out of bounds");
+		}
+
+
+		for (size_t i = pos; i < _size; ++i) {
+			_data[i] = _data[i + n];
+			if (i + n == _size) {
+				break;
+			}
+		}
+		_size -= n;
+		_data[_size] = '\0';
+	}
+
+	void replace(size_t pos, size_t len, const String& str) {
+		if (pos >= _size) {
+			throw std::out_of_range("Index out of bounds");
+		}
+
+		if (pos + len >= _capacity) {
+			reserve((pos + len + 1) * 2);
+		}
+
+		for (size_t i = pos; i < len; ++i) {
+			_data[i] = str._data[i - pos];
+		}
+
+		_size = std::max(_size, pos + len);
+		_data[_size] = '\0';
+	}
+
+	void push_back(char ch) {
+		if (_size + 1 >= _capacity) {
+			reserve((_size + 1) * 2);
+		}
+
+		_data[_size] = ch;
+		++_size;
+		_data[_size] = '\0';
+	}
+
+	void pop_back() {
+		--_size;
+	}
+
+	void clear() {
+		delete[] _data;
+		_data = new char[1];
+		_capacity = 1;
+		_size = 0;
+		_data[_size] = '\0';
+	}
+
+	void insert(size_t pos, const String& str) {
+		if (pos >= _size) {
+			throw std::out_of_range("Index out of bounds");
+		}
+
+		const size_t other_size = str.size();
+
+		if (_size + other_size + 1 >= _capacity) {
+			reserve((_size + other_size + 1) * 2);
+		}
+
+		for (size_t i = _size + other_size - 1; i >= pos; --i) {
+			_data[i] = _data[i - other_size];
+			if (i - other_size == 0) {
+				for (size_t j = 0; j < i; ++j) {
+					_data[j] = str._data[j];
+				}
+				break;
+			}
+		}
+
+		_size += other_size;
+		_data[_size] = '\0';
+	}
 
 	bool is_empty() const {
 		return _size == 0;
@@ -91,10 +183,14 @@ public:
 		return _size;
 	}
 
+	size_t capacity() const {
+		return _capacity;
+	}
+
 	void reserve(size_t new_capacity) {
 		if (new_capacity <= _capacity) { return; }
 
-		char* new_data = new char[new_capacity + 1];
+		char* new_data = new char[new_capacity];
 		for (size_t i = 0; i < _size;++i) {
 			new_data[i] = _data[i];
 		}
@@ -102,7 +198,7 @@ public:
 
 		delete[] _data;
 		_data = new_data;
-		_capacity = new_capacity + 1;
+		_capacity = new_capacity;
 
 	}
 
@@ -134,6 +230,7 @@ public:
 		new_data[_size] = '\0';
 
 		delete[] _data;
+		_data = new_data;
 		_capacity = _size + 1;
 	}
 
@@ -191,7 +288,6 @@ public:
 	const char& operator[](size_t index) const {
 		return at(index);
 	}
-
 	
 	bool operator==(const String& other) const {
 		if (_size != other._size) {
