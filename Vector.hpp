@@ -122,11 +122,6 @@ public:
             return *_ptr;
         }
 
-        pointer operator->() const {
-            _check_bounds(_ptr - _container._data);
-            return _ptr;
-        }
-
         // Increment/Decrement ------------------------------------------------
         Iterator& operator++() {
             _check_bounds(_ptr - _container._data);
@@ -219,7 +214,7 @@ public:
         return _data[_size - 1];
     }
 
-    Iterator begin() const {
+    Iterator begin() {
         return Iterator(*this, _data);
     }
 
@@ -258,7 +253,7 @@ public:
         return _size == 0;
     }
 
-    Iterator end() const {
+    Iterator end() {
         return Iterator(*this, _data + _size);
     }
 
@@ -267,15 +262,15 @@ public:
             throw std::out_of_range("Iterator out of bounds");
         }
 
-        if (!is_trivial_T) {
+        if constexpr (!is_trivial_T) {
             for (auto it = first; it != last; ++it) {
-                it->~T();
+                it.~T();
             }
         }
 
         size_t difference = last - first;
         for (auto it = last; it != end(); ++it) {
-            new (&(it - difference)) T(std::move(*it));
+            new (&*(it - difference)) T(std::move(*it));
         }
 
         _size -= difference;
