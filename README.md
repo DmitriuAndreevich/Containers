@@ -20,7 +20,7 @@ The project focuses on **code transparency**, **implementation details**, and **
 |--------------------------|-----------------------------------------------------|---------------|
 | **`Vector`**             | Dynamic array with automatic resizing               | 🚧 In Progress  |
 | **`String`**             | `std::string`-like class with memory management     | ✅ Complete   |
-| **`Stack`**              | LIFO stack (built on `Vector` or linked list)       |🚧 In Progress  |
+| **`Stack`**              | LIFO stack (built on `Vector` or linked list)       | On testing  |
 | **`Deque`**              | Double-ended queue (deque)                          | 🚧 In Progress |
 | **`List`**               | Doubly linked list                                   | 🚧 In Progress   |
 | **`Map`**                | Associative array using a Red-Black Tree            | 🚧 In Progress   |
