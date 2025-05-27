@@ -1,13 +1,44 @@
 /*
+* Stack Documentation
 *
-* 
-* 
-* 
-* 
+* The Stack class implements a stack with dynamic memory management.
+* Features:
+*    - Low-level memory management via ::operator new() and ::operator delete().
+*    - Use of placement new for explicit object construction.
+*    - Manual destructor calls to control object lifetimes.
+*
+* Core Concepts:
+* -------------------
+* 1. Memory Management:
+*    - Memory is allocated as "raw" (uninitialized) using ::operator new(), avoiding
+*      default constructor calls for unused elements.
+*    - Memory is deallocated via ::operator delete(), which does not invoke destructors
+*      (they are called manually).
+*
+* 2. Placement New:
+*    - Objects are constructed in pre-allocated memory using the syntax: new (address) T(args).
+*    - Enables:
+*      * Precise control over object initialization.
+*      * Support for types without default constructors.
+*      * Avoidance of unnecessary data copies.
+*
+* 3. Safety:
+*    - Destructors are explicitly called for each object before memory deallocation.
+*    - Constructors include exception handling to prevent leaks.
+*
+* Differences from Standard Containers:
+* -----------------------------------
+* - Does not use new[]/delete[], providing full control over object lifecycles.
+* - Does not require T to have a default constructor.
+* - Optimized for scenarios where the stack size changes frequently.
+
+* Limitations:
+* ------------
+* - Not thread-safe.
+* - Move semantics must be supported by type T for efficient object transfers.
 */
 #pragma once
 #include <stdexcept>
-#include "Vector.hpp"
 
 template<typename T>
 class Stack{
@@ -16,29 +47,128 @@ private:
 	size_t _size;
 	size_t _capacity;
 public:
-	Stack():_size(0) , _capacity(10), _data(new T[_capacity]) {}
-	Stack(size_t capacity) : _size(0), _capacity(capacity), _data(new T[_capacity]) {}
-	Stack(std::initializer_list<T> init) :
-		_size(init.size()), 
-		_capacity(init.size() > 0 ? init.size() * 2 : 10),
-		_data(new T[_capacity])
+    //Constructor and destructor
+    Stack() : _size(0), _capacity(10), _data(static_cast<T*>(::operator new(_capacity * sizeof(T)))) {}
+	Stack(size_t capacity) :
+        _size(0), _capacity(capacity),
+        _data(static_cast<T*>(::operator new(_capacity * sizeof(T)))) {}
+    Stack(const Stack& other) 
+        : _size(other._size), _capacity(other._capacity) {
+        _data = static_cast<T*>(::operator new(_capacity * sizeof(T)));
+
+        for (size_t i = 0; i < _size; ++i) {
+            new (&_data[i]) T(other._data[i]);
+        }
+    }
+    Stack(std::initializer_list<T> init)
+        : _size(init.size()), _capacity(init.size() > 0 ? init.size() * 2 : 10),
+        _data(static_cast<T*>(::operator new(_capacity * sizeof(T))))  //creating raw memory
     {
+
         size_t i = 0;
         try {
             for (const auto& item : init) {
-                new (&_data[i]) T(item);
-                ++i;
+                new (&_data[i++]) T(item); 
             }
         }
         catch (...) {
-            delete[] _data;
+            for (size_t j = 0; j < i; ++j) {
+                _data[j].~T(); 
+            }
+            ::operator delete(_data);
             throw;
         }
     }
+    ~Stack() {
+        for (size_t i = 0; i < _size; ++i) {
+            _data[i].~T();
+        }
+        ::operator delete(_data);
+    }
 
+
+    //Main functions
+    size_t capacity() const {
+        return _capacity;
+    }
+
+    void push(const T& element) {
+        if (_size + 1 >= _capacity) {
+            reserve( (_size == 0) ? 10 : _size * 2 );
+        }
+
+        new (&_data[_size]) T(element);
+        ++_size;
+    }
+
+    void pop() {
+        if (empty()) { throw std::out_of_range("Stack is empty"); }
+        _data[_size - 1].~T();
+        --_size;
+    }
+
+    const T& top() const {
+        if (empty()) { throw std::out_of_range("Stack is empty"); }
+        return _data[_size - 1];
+    }
+
+    T& top() {
+        if (empty()) { throw std::out_of_range("Stack is empty"); }
+        return _data[_size - 1];
+    }
+
+    size_t size() const {
+        return _size;
+    }
+
+    bool empty() const {
+        return _size == 0;
+    }
+
+    void swap(Stack& other) {
+        std::swap(_size, other._size);
+        std::swap(_capacity, other._capacity);
+        std::swap(_data, other._data);
+    }
     
+    void reserve(size_t new_capacity) {
+        if (new_capacity <= _capacity) { return; }
 
+        T* new_data = (static_cast<T*>(::operator new(new_capacity * sizeof(T))));
+        for (size_t i = 0; i < _size; ++i) {
+            new (&new_data[i]) T(_data[i]);
+            _data[i].~T();
+        }
 
+        ::operator delete(_data);
 
+        _data = new_data;
+        _capacity = new_capacity;
+    }
+
+    //Operators
+
+    Stack& operator=(const Stack& other) {
+        if (this != &other) {
+            Stack tmp(other);
+            swap(tmp);
+        }
+        return *this;
+    }
+
+    bool operator==(const Stack& other) const {
+        if (_size != other._size) { return false; }
+
+        for (size_t i = 0; i < _size; ++i) {
+            if (_data[i] != other._data[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool operator!=(const Stack& other) const {
+        return !(*this == other);
+    }
 
 };
