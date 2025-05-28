@@ -30,9 +30,9 @@
 template <typename T>
 class Vector {
 private:
-    T* _data;
     size_t _capacity;
     size_t _size;
+    T* _data;
 
     static constexpr bool is_trivial_T = std::is_trivially_destructible_v<T>;
 
@@ -58,7 +58,7 @@ public:
 
     Vector(std::initializer_list<T> init)
         : _size(init.size()),
-        _capacity(init.size() > 0 ? init.size() * 2 + 10: 10),
+        _capacity(init.size() > 0 ? init.size() * 2: 10),
         _data(new T[_capacity])
     {
         size_t i = 0;
@@ -69,23 +69,13 @@ public:
             }
         }
         catch (...) {
-            if (!is_trivial_T) {
-                for (size_t j = 0; j < i; ++j) {
-                    _data[j].~T();
-                }
-            }
             delete[] _data;
             throw;
         }
     }
 
     ~Vector() {
-        if (!is_trivial_T) {
-            for (size_t i = 0; i < _size; ++i) {
-                _data[i].~T();
-            }
-        }
-        delete[] _data;
+        delete[] _data; 
     }
 
     //--------------------------------- I T E R A T O R -----------------------------------
@@ -434,3 +424,4 @@ public:
     }
 
 };
+
