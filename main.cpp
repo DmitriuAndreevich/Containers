@@ -1,7 +1,10 @@
 #include "String.hpp"
 #include "Vector.hpp"
+#include "Stack.hpp"
 #include <cassert>
 #include <iostream>
+
+
 
 void test_string_class() {
     std::cout << "\n=== String Class Test ===\n";
@@ -209,149 +212,135 @@ void test_string_class() {
 }
 
 
-void test_vector_class() {
-    std::cout << "\n=== Vector Class Test ===\n";
+void test_stack_class() {
+    std::cout << "\n=== Stack Class Test ===\n";
     int test_counter = 0;
 
     // ======================================================
-    // 1. Constructors and Basic Operations
+    // 1. Stack<int>: Basic Operations
     // ======================================================
     {
-        Vector<int> v1;
-        assert(v1.empty() && v1.capacity() == 10 && v1.size() == 0); // Test 1
-        test_counter++;
+        Stack<int> s;
+        assert(s.empty());                     // Test 1
+        ++test_counter;
 
-        Vector<String> v2;
-        assert(v2.empty() && v2.capacity() == 10); // Test 2
-        test_counter++;
+        s.push(10);
+        assert(!s.empty() && s.top() == 10);   // Test 2
+        ++test_counter;
+
+        s.push(20);
+        assert(s.top() == 20);                    // Test 3
+        ++test_counter;
+
+        s.pop();
+        assert(s.top() == 10);                    // Test 4
+        ++test_counter;
     }
 
     // ======================================================
-    // 2. Push/Pop Operations
+    // 2. Stack<int>: Initializer List, Copy & Move
     // ======================================================
     {
-        Vector<int> v;
-        v.push_back(10);
-        assert(v.size() == 1 && v[0] == 10); // Test 3
-        test_counter++;
+        Stack<int> s1 = { 1, 2, 3 };
+        assert(s1.top() == 3);                    // Test 5
+        ++test_counter;
 
-        v.pop_back();
-        assert(v.empty()); // Test 4
-        test_counter++;
+        Stack<int> s2(s1); // Copy
+        assert(s2.top() == 3);                    // Test 6
+        s1.pop();
+        assert(s1.top() != s2.top());             // Test 7
+        ++test_counter += 2;
 
-        Vector<String> vs;
-        vs.emplace_back("Test");
-        assert(vs.back() == "Test"); // Test 5
-        test_counter++;
+        Stack<int> s3(std::move(s2)); // Move
+        assert(s3.top() == 3);                    // Test 8
+        assert(s2.empty());                    // Test 9
+        ++test_counter += 2;
     }
 
     // ======================================================
-    // 3. Iterator Functionality
+    // 3. Stack<int>: Assignment
     // ======================================================
     {
-        Vector<int> v{ 1, 2, 3 };
-        auto it = v.begin();
-        assert(*it == 1); // Test 6
-        test_counter++;
+        Stack<int> s1 = { 100, 200 };
+        Stack<int> s2;
+        s2 = s1;
 
-        ++it;
-        assert(*it == 2); // Test 7
-        test_counter++;
+        assert(s2.top() == 200);                  // Test 10
+        s1.pop();
+        assert(s1.top() != s2.top());             // Test 11
+        ++test_counter += 2;
 
-        auto end = v.end();
-        assert(it != end); // Test 8
-        test_counter++;
+        Stack<int> s3;
+        s3 = std::move(s2);
+        assert(s3.top() == 200);                  // Test 12
+        assert(s2.empty());                    // Test 13
+        ++test_counter += 2;
+    }
+
+    // ======================================================
+    // 4. Stack<int>: Exceptions
+    // ======================================================
+    {
+        Stack<int> s;
+        bool caught = false;
+        try { s.top(); }
+        catch (...) { caught = true; }
+        assert(caught);                           // Test 14
+
+        caught = false;
+        try { s.pop(); }
+        catch (...) { caught = true; }
+        assert(caught);                           // Test 15
+        ++test_counter += 2;
+    }
+
+    // ======================================================
+    // 5. Stack<std::string>: Basic & Edge Cases
+    // ======================================================
+    {
+        Stack<String> s;
+        s.push("Hello");
+        s.push("World");
+        assert(s.top() == "World");               // Test 16
+        ++test_counter;
+
+        s.pop();
+        assert(s.top() == "Hello");               // Test 17
+        ++test_counter;
+
+        Stack<String> s2 = { "A", "B", "C" };
+        assert(s2.top() == "C");                  // Test 18
+        ++test_counter;
+
+        Stack<String> s3(s2); // Copy
+        s2.pop();
+        assert(s3.top() == "C");                  // Test 19
+        ++test_counter;
+
+        Stack<String> s4;
+        s4 = std::move(s3);
+        assert(s4.top() == "C");                  // Test 20
+        assert(s3.empty());                    // Test 21
+        ++test_counter += 2;
+
+        s4.clear();
+        assert(s4.empty());                    // Test 22
+        ++test_counter;
 
         bool caught = false;
-        try { v.end()++; }
+        try { s4.top(); }
         catch (...) { caught = true; }
-        assert(caught); // Test 9
-        test_counter++;
+        assert(caught);                           // Test 23
+        ++test_counter;
     }
 
-    // ======================================================
-    // 4. Element Access and Modifiers
-    // ======================================================
-    {
-        Vector<String> v{ "A", "B", "C" };
-        assert(v.front() == "A" && v.back() == "C"); // Test 10
-        test_counter++;
-
-        v[1] = "X";
-        assert(v[1] == "X"); // Test 11
-        test_counter++;
-
-        bool caught = false;
-        try { v.at(5); }
-        catch (...) { caught = true; }
-        assert(caught); // Test 12
-        test_counter++;
-    }
-
-    // ======================================================
-    // 5. Memory Management
-    // ======================================================
-    {
-        Vector<int> v;
-        v.reserve(100);
-        assert(v.capacity() == 100 && v.empty()); // Test 13
-        test_counter++;
-
-        v.resize(5, 10);
-        assert(v.size() == 5 && v[4] == 10); // Test 14
-        test_counter++;
-
-        v.shrink_to_fit();
-        assert(v.capacity() == 5); // Test 15
-        test_counter++;
-    }
-
-    // ======================================================
-    // 6. Copy/Move Semantics
-    // ======================================================
-    {
-        Vector<int> v1{ 1,2,3 };
-        Vector<int> v2 = v1;
-        assert(v2.size() == 3 && v2[2] == 3); // Test 16
-        test_counter++;
-
-        Vector<int> v3 = std::move(v1);
-        assert(v3.size() == 3 && v1.empty()); // Test 17
-        test_counter++;
-    }
-
-    // ======================================================
-    // 7. Complex Operations
-    // ======================================================
-    {
-        Vector<int> v{ 1,2,3,4,5 };
-
-        // Erase elements
-        auto first = v.begin() + 1;
-        auto last = v.begin() + 3;
-        v.erase(first, last);
-        assert(v.size() == 3 && v[1] == 4); // Test 18
-        test_counter++;
-
-        // Insert element
-        v.insert(10, v.begin() + 1);
-        assert(v.size() == 4 && v[1] == 10); // Test 19
-        test_counter++;
-
-        // Clear vector
-        v.clear();
-        assert(v.empty()); // Test 20
-        test_counter++;
-    }
-
-    std::cout << "=== All " << test_counter << " vector tests passed! ===\n";
+    std::cout << "=== All " << test_counter << " stack tests passed! ===\n";
 }
 
 void start_all_tests() {
     test_string_class();
-    test_vector_class();
+    test_stack_class();
 }
-
 
 int main() {
     start_all_tests();
