@@ -43,9 +43,12 @@
 template<typename T>
 class Stack{
 private:
-	T* _data;
+    //the fields are in this order because the initialization sequence is important
+    //fields are initialized in the order they are declared in the class,
+    // not in the order they are listed in the constructor's initialization list
 	size_t _size;
 	size_t _capacity;
+    T* _data;
 public:
     //Constructor and destructor
     Stack() : _size(0), _capacity(10), _data(static_cast<T*>(::operator new(_capacity * sizeof(T)))) {}
