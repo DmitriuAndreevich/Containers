@@ -63,6 +63,15 @@ public:
             new (&_data[i]) T(other._data[i]);
         }
     }
+    Stack(Stack&& other) noexcept {
+        _data = other._data;
+        _size = other._size;
+        _capacity = other._capacity;
+
+        other._data = nullptr;
+        other._size = 0;
+        other._capacity = 1;
+    }
     Stack(std::initializer_list<T> init)
         : _size(init.size()), _capacity(init.size() > 0 ? init.size() * 2 : 10),
         _data(static_cast<T*>(::operator new(_capacity * sizeof(T))))  //creating raw memory
@@ -93,6 +102,13 @@ public:
     //Main functions
     size_t capacity() const {
         return _capacity;
+    }
+
+    void clear() {
+        for (size_t i = 0; i < _size; ++i) {
+            _data[i].~T();
+        }
+        _size = 0;
     }
 
     void push(const T& element) {
@@ -155,6 +171,26 @@ public:
         if (this != &other) {
             Stack tmp(other);
             swap(tmp);
+        }
+        return *this;
+    }
+
+    Stack& operator=(Stack&& other) noexcept {
+        if (this != &other) {
+            if (_data) {
+                for (size_t i = 0; i < _size; ++i) {
+                    _data[i].~T();
+                }
+                ::operator delete(_data);
+            }
+
+            _data = other._data;
+            _size = other._size;
+            _capacity = other._capacity;
+
+            other._data = nullptr;
+            other._size = 0;
+            other._capacity = 1;
         }
         return *this;
     }
