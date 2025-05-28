@@ -45,7 +45,7 @@ public:
     Vector(const Vector<T>& vec) : _size(vec._size), _capacity(vec._capacity) {
         _data = new T[_capacity];
         for (size_t i = 0; i < _size; ++i) {
-            new (&_data[i]) T(vec._data[i]);
+            _data[i] = vec._data[i];
         }
     }
 
@@ -64,7 +64,7 @@ public:
         size_t i = 0;
         try {
             for (const auto& item : init) {
-                new (&_data[i]) T(item);
+                _data[i] = item;
                 ++i;
             }
         }
@@ -235,7 +235,7 @@ public:
         }
 
         //placement new is a special variant of the new operator that allows you to create an object in already allocated memory
-        new (&_data[_size]) T(element);
+        _data[_size] = element;
         ++_size;
     }
 
@@ -260,7 +260,7 @@ public:
 
         size_t difference = last - first;
         for (auto it = last; it != end(); ++it) {
-            new (&*(it - difference)) T(std::move(*it));
+            *(it - difference) =  std::move(*it);
         }
 
         _size -= difference;
@@ -279,7 +279,7 @@ public:
         }
 
         for (size_t i = index; i < _size - 1; ++i) {
-            new (&_data[i]) T(std::move(_data[i + 1]));
+            _data[i] = std::move(_data[i + 1]);
         }
         --_size;
     }
@@ -305,10 +305,10 @@ public:
 
         size_t pos_index = position - begin();
         for (size_t i = _size; i > pos_index; --i) {
-            new (&_data[i]) T(std::move(_data[i - 1]));
+            _data[i] = std::move(_data[i - 1]);
         }
 
-        new (&_data[pos_index]) T(element);
+        _data[pos_index] = element;
         ++_size;
     }
 
@@ -332,7 +332,7 @@ public:
 
 
         for (size_t i = 0; i < _size; ++i) {
-            new (&new_data[i]) T(std::move(_data[i]));
+            new_data[i] = std::move(_data[i]);
         }
 
         delete[] _data;
@@ -355,7 +355,7 @@ public:
             reserve(new_size + 1);
         }
         for (size_t i = _size; i < new_size; ++i) {
-            new (&_data[i]) T(default_value);
+            _data[i] = default_value;
         }
         _size = new_size;
     }
@@ -365,7 +365,7 @@ public:
 
         T* new_data = new T[_size];
         for (size_t i = 0; i < _size; ++i) {
-            new (&new_data[i]) T(std::move(_data[i]));
+            new_data[i] = std::move(_data[i]);
         }
 
         delete[] _data;
