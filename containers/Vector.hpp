@@ -25,6 +25,7 @@
 #pragma once
 #include <stdexcept>
 #include <type_traits>
+#include <initializer_list>
 
 
 template <typename T>
