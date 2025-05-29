@@ -59,7 +59,7 @@ public:
 
     Vector(std::initializer_list<T> init)
         : _size(init.size()),
-        _capacity(init.size() > 0 ? init.size() * 2: 10),
+        _capacity(init.size() > 10 ? init.size() * 2: 10),
         _data(new T[_capacity])
     {
         size_t i = 0;
