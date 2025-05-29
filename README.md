@@ -22,8 +22,10 @@ The project focuses on **code transparency**, **implementation details**, and **
 | **`String`**             | `std::string`-like class with memory management     | ✅ Complete   |
 | **`Stack`**              | LIFO stack (built on `Vector` or linked list)       | ✅ Complete  |
 | **`Deque`**              | Double-ended queue (deque)                          | 🚧 In Progress |
+| **`Qeque`**              | FIFO data structure where elements are added to the rear and removed from the front. | 🚧 In Progress |
 | **`List`**               | Doubly linked list                                   | 🚧 In Progress   |
 | **`Map`**                | Associative array using a Red-Black Tree            | 🚧 In Progress   |
+| **`Set`**                |A set is an ordered, unique collection of elements   | 🚧 In Progress   |
 | **`Tree`**               | Binary Search Tree (BST)                            | 🚧 In Progress   |
 | **`AVL Tree`**           | Self-balancing AVL Tree                             | 🚧 In Progress |
 
