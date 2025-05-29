@@ -74,7 +74,7 @@ public:
         other._capacity = 1;
     }
     Stack(std::initializer_list<T> init)
-        : _size(init.size()), _capacity(init.size() > 0 ? init.size() * 2 : 10),
+        : _size(init.size()), _capacity(init.size() > 10 ? init.size() * 2 : 10),
         _data(static_cast<T*>(::operator new(_capacity * sizeof(T))))  //creating raw memory
     {
 
