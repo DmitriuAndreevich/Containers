@@ -1,9 +1,8 @@
-#include "String.hpp"
-#include "Vector.hpp"
-#include "Stack.hpp"
+#include "containers/String.hpp"
+#include "containers/Vector.hpp"
+#include "containers/Stack.hpp"
 #include <cassert>
 #include <iostream>
-
 
 
 void test_string_class() {
