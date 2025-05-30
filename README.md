@@ -20,7 +20,7 @@ The project focuses on **code transparency**, **implementation details**, and **
 |--------------------------|-----------------------------------------------------|---------------|
 | **`Vector`**             | Dynamic array with automatic resizing               | ✅ Complete  |
 | **`String`**             | `std::string`-like class with memory management     | ✅ Complete   |
-| **`Stack`**              | LIFO stack (built on `Vector` or linked list)       | ✅ Complete  |
+| **`Stack`**              | LIFO stack                                          | ✅ Complete  |
 | **`Deque`**              | Double-ended queue (deque)                          | 🚧 In Progress |
 | **`Qeque`**              | FIFO data structure where elements are added to the rear and removed from the front. | 🚧 In Progress |
 | **`List`**               | Doubly linked list                                   | 🚧 In Progress   |
