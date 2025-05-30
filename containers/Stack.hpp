@@ -40,6 +40,7 @@
 #pragma once
 #include <stdexcept>
 #include <initializer_list>
+#include <cstring>
 
 template<typename T>
 class Stack{
@@ -148,6 +149,7 @@ public:
     void swap(Stack& other) {
         std::swap(_size, other._size);
         std::swap(_capacity, other._capacity);
+	memcpy(_data, other._data, other.size() * sizeof(T));
         std::swap(_data, other._data);
     }
     
