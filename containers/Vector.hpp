@@ -235,7 +235,6 @@ public:
             reserve(_capacity == 0 ? 10 : _capacity * 2);
         }
 
-        //placement new is a special variant of the new operator that allows you to create an object in already allocated memory
         _data[_size] = element;
         ++_size;
     }
