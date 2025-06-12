@@ -2,6 +2,7 @@
 #include "containers/Vector.hpp"
 #include "containers/Stack.hpp"
 #include "containers/Queue.hpp"
+#include "containers/List.hpp"
 #include <cassert>
 #include <iostream>
 #include <string>
@@ -925,12 +926,359 @@ void test_queue_class() {
 }
 
 
+void test_list_class() {
+    std::cout << "\n=== List Class Test ===\n";
+    int test_counter = 0;
+
+    // ======================================================
+    // 1. Constructors and Basic Operations
+    // ======================================================
+    {
+        List list;
+        assert(list.empty());                  // Test 1
+        assert(list.size() == 0);              // Test 2
+        test_counter += 2;
+
+        List list2(5, "A");
+        assert(list2.size() == 5);            // Test 3
+        assert(list2[0] == "A");               // Test 4
+        test_counter += 2;
+
+        List list3(3);
+        assert(list3.size() == 3);             // Test 5
+        assert(list3[0] == "");                // Test 6
+        test_counter += 2;
+    }
+
+    // ======================================================
+    // 2. Push Operations
+    // ======================================================
+    {
+        List list;
+        list.push_back("A");
+        assert(list.size() == 1);              // Test 7
+        assert(list[0] == "A");                // Test 8
+        test_counter += 2;
+
+        list.push_front("B");
+        assert(list.size() == 2);              // Test 9
+        assert(list[0] == "B");                // Test 10
+        assert(list[1] == "A");                // Test 11
+        test_counter += 3;
+
+        list.push_back(std::move("C"));
+        assert(list.size() == 3);              // Test 12
+        assert(list[2] == "C");                // Test 13
+        test_counter += 2;
+
+        list.push_front(std::move("D"));
+        assert(list.size() == 4);              // Test 14
+        assert(list[0] == "D");                // Test 15
+        test_counter += 2;
+    }
+
+    // ======================================================
+    // 3. Pop Operations
+    // ======================================================
+    {
+        List list = { "A", "B", "C" };
+        list.pop_back();
+        assert(list.size() == 2);              // Test 16
+        assert(list[1] == "B");                // Test 17
+        test_counter += 2;
+
+        list.pop_front();
+        assert(list.size() == 1);              // Test 18
+        assert(list[0] == "B");                // Test 19
+        test_counter += 2;
+
+        list.pop_back();
+        assert(list.empty());                  // Test 20
+        test_counter += 1;
+
+        bool exception_thrown = false;
+        try { list.pop_back(); }
+        catch (...) { exception_thrown = true; }
+        assert(exception_thrown);              // Test 21
+        test_counter += 1;
+    }
+
+    // ======================================================
+    // 4. Iterator Operations
+    // ======================================================
+    {
+        List list = { "A", "B", "C" };
+        auto it = list.begin();
+        assert(*it == "A");                   // Test 22
+        test_counter += 1;
+
+        ++it;
+        assert(*it == "B");                    // Test 23
+        test_counter += 1;
+
+        --it;
+        assert(*it == "A");                    // Test 24
+        test_counter += 1;
+
+        it += 2;
+        assert(*it == "C");                    // Test 25
+        test_counter += 1;
+
+        it = it - 1;
+        assert(*it == "B");                    // Test 26
+        test_counter += 1;
+
+        auto end = list.end();
+        assert(!end.is_valid());               // Test 27
+        test_counter += 1;
+    }
+
+    // ======================================================
+    // 5. Insert Operations
+    // ======================================================
+    {
+        List list = { "A", "C" };
+        auto it = list.begin() + 1;
+        list.insert(it, "B");
+        assert(list.size() == 3);              // Test 28
+        assert(list[1] == "B");                // Test 29
+        test_counter += 2;
+
+        list.insert(list.begin(), "X");
+        assert(list[0] == "X");                // Test 30
+        test_counter += 1;
+
+        list.insert(list.end(), "Z");
+        assert(list[4] == "Z");                // Test 31
+        test_counter += 1;
+
+        list.insert(list.begin() + 2, 3, "M");
+        assert(list.size() == 8);              // Test 32
+        assert(list[2] == "M");                // Test 33
+        assert(list[3] == "M");                // Test 34
+        assert(list[4] == "M");                // Test 35
+        test_counter += 4;
+    }
+
+    // ======================================================
+    // 6. Erase Operations
+    // ======================================================
+    {
+        List list = { "A", "B", "C", "D" };
+        auto it = list.begin() + 1;
+        it = list.erase(it);
+        assert(list.size() == 3);              // Test 36
+        assert(*it == "C");                   // Test 37
+        test_counter += 2;
+
+        it = list.erase(list.begin());
+        assert(list.size() == 2);              // Test 38
+        assert(*it == "C");                   // Test 39
+        test_counter += 2;
+
+        it = list.erase(list.begin() + 1);
+        assert(list.size() == 1);              // Test 40
+        assert(it == list.end());              // Test 41
+        test_counter += 2;
+
+        bool exception_thrown = false;
+        try { list.erase(list.end()); }
+        catch (...) { exception_thrown = true; }
+        assert(exception_thrown);              // Test 42
+        test_counter += 1;
+    }
+
+    // ======================================================
+    // 7. Copy/Move Semantics
+    // ======================================================
+    {
+        List list1 = { "A", "B", "C" };
+        List list2(list1);
+        assert(list2.size() == 3);             // Test 43
+        assert(list2[1] == "B");               // Test 44
+        test_counter += 2;
+
+        list1[0] = "X";
+        assert(list2[0] == "A");               // Test 45
+        test_counter += 1;
+
+        List list3 = std::move(list1);
+        assert(list3.size() == 3);             // Test 46
+        assert(list1.empty());                 // Test 47
+        test_counter += 2;
+
+        list2 = list3;
+        assert(list2.size() == 3);             // Test 48
+        assert(list2[2] == "C");               // Test 49
+        test_counter += 2;
+
+        list3 = std::move(list2);
+        assert(list3.size() == 3);             // Test 50
+        assert(list2.empty());                 // Test 51
+        test_counter += 2;
+    }
+
+    // ======================================================
+    // 8. Special Operations (unique, reverse)
+    // ======================================================
+    {
+        List list = { "A", "A", "B", "B", "C" };
+        list.unique();
+        assert(list.size() == 3);              // Test 52
+        assert(list[0] == "A");                // Test 53
+        assert(list[1] == "B");                // Test 54
+        assert(list[2] == "C");                // Test 55
+        test_counter += 4;
+
+        list.reverse();
+        assert(list.size() == 3);              // Test 56
+        assert(list[0] == "C");                // Test 57
+        assert(list[1] == "B");                // Test 58
+        assert(list[2] == "A");                // Test 59
+        test_counter += 4;
+
+        List single = { "X" };
+        single.reverse();
+        assert(single[0] == "X");              // Test 60
+        test_counter += 1;
+    }
+
+    // ======================================================
+    // 9. Edge Cases and Stress Testing
+    // ======================================================
+    {
+        // Empty list operations
+        List empty;
+        bool exception_thrown = false;
+        try { empty.pop_front(); }
+        catch (...) { exception_thrown = true; }
+        assert(exception_thrown);              // Test 61
+        test_counter += 1;
+
+        // Single element list
+        List single;
+        single.push_back("A");
+        single.pop_back();
+        assert(single.empty());                // Test 62
+        test_counter += 1;
+
+        // Large list
+        List large;
+        for (int i = 0; i < 1000; i++) {
+            large.push_back(std::to_string(i));
+        }
+        assert(large.size() == 1000);          // Test 63
+        assert(large[999] == "999");           // Test 64
+        test_counter += 2;
+
+        // Iterator boundary checks
+        auto it = large.begin();
+        it += 500;
+        assert(*it == "500");                  // Test 65
+        test_counter += 1;
+
+        it -= 500;
+        assert(*it == "0");                    // Test 66
+        test_counter += 1;
+
+        // Clear large list
+        large.clear();
+        assert(large.empty());                 // Test 67
+        test_counter += 1;
+    }
+
+    // ======================================================
+    // 10. Initializer List and Accessors
+    // ======================================================
+    {
+        List list = { "One", "Two", "Three" };
+        assert(list.size() == 3);              // Test 68
+        assert(list[0] == "One");              // Test 69
+        assert(list[1] == "Two");              // Test 70
+        assert(list[2] == "Three");            // Test 71
+        test_counter += 4;
+
+        // Boundary access
+        bool exception_thrown = false;
+        try { list[3] = "Four"; }
+        catch (...) { exception_thrown = true; }
+        assert(exception_thrown);              // Test 72
+        test_counter += 1;
+
+        // Iterator invalidation
+        auto it = list.begin() + 1;
+        list.erase(list.begin());
+        assert(*it == "Two");                  // Test 73
+        test_counter += 1;
+
+        list.insert(list.begin(), "Zero");
+        assert(*it == "Two");                  // Test 74
+        test_counter += 1;
+    }
+
+    // ======================================================
+    // 11. Complex Iterator Operations
+    // ======================================================
+    {
+        List list = { "A", "B", "C", "D", "E" };
+        auto it1 = list.begin() + 1;
+        auto it2 = list.end() - 1;
+
+        assert(*it1 == "B");                   // Test 75
+        assert(*it2 == "E");                   // Test 76
+        test_counter += 2;
+
+        it1 += 2;
+        it2 -= 2;
+        assert(*it1 == "D");                   // Test 77
+        assert(*it2 == "C");                   // Test 78
+        test_counter += 2;
+
+        assert(it1 != it2);                    // Test 79
+        ++it2;
+        assert(it1 == it2);                    // Test 80
+        test_counter += 2;
+
+        // Const iteration
+        const List& clist = list;
+        auto cit = clist.begin();
+        assert(*cit == "A");                   // Test 81
+        test_counter += 1;
+    }
+
+    // ======================================================
+    // 12. String Edge Cases
+    // ======================================================
+    {
+        List list;
+        list.push_back("");
+        list.push_back(" ");
+        list.push_back("Long string with spaces");
+
+        assert(list[0] == "");                 // Test 82
+        assert(list[1] == " ");                // Test 83
+        assert(list[2] == "Long string with spaces"); // Test 84
+        test_counter += 3;
+
+        list.reverse();
+        assert(list[0] == "Long string with spaces"); // Test 85
+        test_counter += 1;
+
+        list.unique();
+        assert(list.size() == 3);              // Test 86
+        test_counter += 1;
+    }
+
+    std::cout << "=== All " << test_counter << " list tests passed! ===\n";
+}
+
 
 void start_all_tests() {
     test_vector_class();
     test_string_class();
     test_stack_class();
     test_queue_class();
+    test_list_class();
 }
 
 int main() {
