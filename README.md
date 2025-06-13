@@ -23,7 +23,7 @@ The project focuses on **code transparency**, **implementation details**, and **
 | **`Stack`**              | LIFO stack                                          | ✅ Complete  |
 | **`Deque`**              | Double-ended queue (deque)                          | 🚧 In Progress |
 | **`Qeque`**              | FIFO data structure where elements are added to the rear and removed from the front. | ✅ Complete |
-| **`List`**               | Doubly linked list                                   | 🚧 In Progress   |
+| **`List`**               | Doubly linked list                                   | ✅ Complete   |
 | **`Map`**                | Associative array using a Red-Black Tree            | 🚧 In Progress   |
 | **`Set`**                |A set is an ordered, unique collection of elements   | 🚧 In Progress   |
 | **`Tree`**               | Binary Search Tree (BST)                            | 🚧 In Progress   |
