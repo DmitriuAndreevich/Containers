@@ -27,6 +27,7 @@
 *    - pop() requires element shifting (linear time)
 *    - Capacity always grows (never shrinks)
 */
+#pragma once
 #include <stdexcept>
 #include <initializer_list>
 
