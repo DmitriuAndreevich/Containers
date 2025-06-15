@@ -61,6 +61,9 @@ This intentional contrast helps students:
 
 ---
 
+## Peculiarities
+Some containers have iterators declared, some do not.
+
 ## 📜 License
 Distributed under the MIT License. See `LICENSE` for more information.  
 **Created for educational purposes** •
