@@ -23,10 +23,6 @@
 #include <stdexcept>
 
 
-
-#include <iostream>
-
-
 class String {
 private:
 	char* _data;
@@ -84,6 +80,124 @@ public:
 		delete[] _data;
 	}
 
+	//--------------------------------- I T E R A T O R -----------------------------------
+	class Iterator {
+	private:
+		char* _ptr;
+		String& container;
+
+		void _check_bounds(size_t pos) const {
+			if (pos >= container._size) {
+				throw std::out_of_range("Iterator out of bounds");
+			}
+		}
+	public:
+		Iterator(char* ch, String& str ) : _ptr(ch), container(str) {}
+
+		char& operator*() {
+			_check_bounds(_ptr - container._data);
+			return *_ptr;
+		}
+
+		char* operator->() {
+			_check_bounds(_ptr - container._data);
+			return &(*_ptr);
+		}
+
+		const char& operator*() const {
+			_check_bounds(_ptr - container._data);
+			return *_ptr;
+		}
+
+		const char* operator->() const {
+			_check_bounds(_ptr - container._data);
+			return &(*_ptr);
+		}
+
+		// Increment/Decrement ------------------------------------------------
+		Iterator& operator++() {
+			_check_bounds(_ptr - container._data);
+			++_ptr;
+			return *this;
+		}
+
+		Iterator operator++(int) {
+			Iterator tmp = *this;
+			++(*this);
+			return tmp;
+		}
+
+		Iterator& operator--() {
+			_check_bounds(_ptr - container._data);
+			--_ptr;
+			return *this;
+		}
+
+		Iterator operator--(int) {
+			Iterator tmp = *this;
+			--(*this);
+			return *this;
+		}
+
+		// Arithmetic operations --------------------------------------------
+		Iterator& operator+=(size_t n) {
+			_ptr += n;
+			_check_bounds(_ptr - container._data);
+			return *this;
+		}
+
+		Iterator& operator-=(size_t n) {
+			_ptr -= n;
+			_check_bounds(_ptr - container._data);
+			return *this;
+		}
+
+		Iterator operator+(size_t n) const {
+			Iterator tmp = *this;
+			tmp += n;
+			return tmp;
+		}
+
+		Iterator operator-(size_t n) const {
+			Iterator tmp = *this;
+			tmp -= n;
+			return tmp;
+		}
+
+		// Comparison ---------------------------------------------------------
+		Iterator& operator=(const Iterator& other) {
+			_ptr = other._ptr;
+			container = other.container;
+			return *this;
+		}
+
+
+		bool operator==(const Iterator& other) const {
+			return _ptr == other._ptr;
+		}
+
+		bool operator!=(const Iterator& other) const {
+			return !(*this == other);
+		}
+
+		bool operator<(const Iterator& other) const {
+			return _ptr < other._ptr;
+		}
+
+		bool operator>(const Iterator& other) const {
+			return other < *this;
+		}
+
+		bool operator<=(const Iterator& other) const {
+			return !(other < *this);
+		}
+
+		bool operator>=(const Iterator& other) const {
+			return !(*this < other);
+		}
+
+	};
+	//-------------------------------------------------------------------------------------
 
 	char& at(size_t index) {
 		if (index < 0 || index >= _size) {
@@ -97,6 +211,14 @@ public:
 			throw std::out_of_range("Index out of bounds");
 		}
 		return _data[index];
+	}
+
+	Iterator begin() {
+		return Iterator(_data, *this);
+	}
+
+	Iterator end() {
+		return Iterator(_data + _size, *this);
 	}
 
 	void erase(size_t pos_start, size_t pos_end) {
