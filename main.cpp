@@ -449,6 +449,92 @@ void test_string_class() {
         ++test_counter;
     }
 
+    // ======================================================
+   // 13. Iterator Tests
+   // ======================================================
+    {
+        // Basic iteration
+        String s("Hello");
+        size_t count = 0;
+        for (String::Iterator it = s.begin(); it != s.end(); ++it) {
+            ++count;
+        }
+        assert(count == s.size()); // Test 55
+        ++test_counter;
+
+        // Dereference and modification
+        String::Iterator it = s.begin();
+        *it = 'J';
+        assert(s == "Jello"); // Test 56
+        ++test_counter;
+
+        // Value access
+        it = s.begin() + 1;
+        assert(*it == 'e'); // Test 57
+        ++test_counter;
+
+        // Increment/Decrement
+        ++it;
+        assert(*it == 'l'); // Test 58
+        ++test_counter;
+        it--;
+        assert(*it == 'e'); // Test 59
+        ++test_counter;
+
+        // Arithmetic operations
+        String::Iterator it2 = s.begin() + 3;
+        assert(*(it2) == 'l'); // Test 60
+        ++test_counter;
+        assert(*(it2 + 1) == 'o'); // Test 61
+        ++test_counter;
+
+        // Comparison
+        assert(it < it2); // Test 62
+        ++test_counter;
+        assert(!(it >= it2)); // Test 63
+        ++test_counter;
+
+        // Bounds checking
+        bool exception = false;
+        try {
+            String::Iterator end_it = s.end();
+            *end_it;
+        }
+        catch (const std::out_of_range&) {
+            exception = true;
+        }
+        assert(exception); // Test 64
+        ++test_counter;
+
+        // Empty string iteration
+        String empty;
+        assert(empty.begin() == empty.end()); // Test 65
+        ++test_counter;
+
+        // Reverse iteration
+        String rev;
+        for (String::Iterator rit = s.end() - 1; rit >= s.begin(); --rit) {
+            rev.push_back(*rit);
+        }
+        assert(rev == "olleJ"); // Test 66
+        ++test_counter;
+
+        // Partial range
+        String part;
+        for (String::Iterator pit = s.begin() + 1; pit < s.end() - 1; ++pit) {
+            part.push_back(*pit);
+        }
+        assert(part == "ell"); // Test 67
+        ++test_counter;
+
+        // Iterator with replace/insert
+        it = s.begin() + 4;
+        s.replace(4, 4, "y!");
+        it = s.end() - 1;
+        assert(*it == '!'); // Test 68 (проверка валидности после изменения)
+        ++test_counter;
+    }
+
     std::cout << "=== All " << test_counter << " string tests passed! ===\n";
 }
 
@@ -1396,6 +1482,7 @@ void start_all_tests() {
 }
 
 int main() {
+    //TO DO MORE TEST FOR VECTOR, STACK, STRING
     start_all_tests();
     return 0;
 }
