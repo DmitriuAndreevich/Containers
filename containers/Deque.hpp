@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <initializer_list>
 #include <cstring>
+#include <cstddef>
 
 
 template<typename T>
@@ -36,14 +37,14 @@ private:
 	T* _data;
 public:
 	Deque() : _size(0), _capacity(10), front_index(0), back_index(0), _data(new T[_capacity]) {}
-	Deque(size_t capacity) : _size(0), _capacity(capacity), front_index(0), back_index(0),_data(new T[_capacity]) {}
+	Deque(size_t capacity) : _size(0), _capacity(capacity), front_index(0), back_index(0), _data(new T[_capacity]) {}
 	Deque(const Deque& other) : _size(other._size), _capacity(other._capacity),
 		front_index(other.front_index), back_index(other.back_index), _data(new T[_capacity]) {
 		for (size_t i = front_index; i < _size;++i) {
 			_data[i] = other._data[i];
 		}
 	}
-	Deque(Deque&& other) noexcept : _size(other._size), _capacity(other._capacity) ,
+	Deque(Deque&& other) noexcept : _size(other._size), _capacity(other._capacity),
 		front_index(other.front_index), back_index(other.back_index), _data(other._data) {
 		other._size = 0;
 		other._capacity = 10;
@@ -77,48 +78,72 @@ public:
 		Deque* _container;
 		T* _ptr;
 
-		void _check_bounds(size_t pos) const {
-			if (pos > _container->back_index || pos < _container->front_index) {
-				throw std::out_of_range("Iterator out of bounds");
+		size_t _get_logical_pos() const {
+			size_t current_index = _ptr - _container->_data;
+			if (current_index >= _container->front_index) {
+				return current_index - _container->front_index;
+			}
+			else {
+				return current_index + _container->_capacity - _container->front_index;
+			}
+		}
+
+		void _check_dereference() const {
+			size_t logical_pos = _get_logical_pos();
+			if (logical_pos >= _container->_size) {
+				throw std::out_of_range("Dereferencing invalid iterator");
+			}
+		}
+
+		void _check_arithmetic(size_t new_logical_pos) const {
+			if (new_logical_pos > _container->_size) {
+				throw std::out_of_range("Iterator out of range");
 			}
 		}
 
 	public:
-
-		Iterator(T* ptr, Deque* container) : _ptr(ptr),_container(container) {}
+		Iterator(T* ptr, Deque* container) : _ptr(ptr), _container(container) {}
 
 		T& operator*() {
-			_check_bounds(_ptr - _container->_data);
+			if (!_ptr || _ptr < _container->_data || _ptr >= _container->_data + _container->_capacity) {
+				size_t current_index = _ptr - _container->_data;
+				if (current_index >= _container->_capacity) {
+					throw std::out_of_range("Dereferencing invalid iterator");
+				}
+				return *_ptr;
+			}
 			return *_ptr;
 		}
 
 		T* operator->() {
-			_check_bounds(_ptr - _container._data);
-			return &_ptr;
+			_check_dereference();
+			return _ptr; 
 		}
 
 		const T& operator*() const {
-			_check_bounds(_ptr - _container->_data);
+			if (!_ptr || _ptr < _container->_data || _ptr >= _container->_data + _container->_capacity) {
+				size_t current_index = _ptr - _container->_data;
+				if (current_index >= _container->_capacity) {
+					throw std::out_of_range("Dereferencing invalid iterator");
+				}
+				return *_ptr;
+			}
 			return *_ptr;
 		}
 
 		const T* operator->() const {
-			_check_bounds(_ptr - _container._data);
-			return &_ptr;
+			_check_dereference();
+			return _ptr;  // Исправлено: было &_ptr
 		}
 
-
-		// Increment/Decrement ------------------------------------------------
-
+		//Increment/decrement --------------------------------------------------
 		Iterator& operator++() {
-			_check_bounds(_ptr - _container->_data);
-			++_ptr;
+			*this += 1;
 			return *this;
 		}
 
 		Iterator& operator--() {
-			_check_bounds(_ptr - _container->_data);
-			--_ptr;
+			*this -= 1;
 			return *this;
 		}
 
@@ -134,22 +159,27 @@ public:
 			return tmp;
 		}
 
-
-		// Arithmetic operations ----------------------------------------------
-
+		//Arithmetic operations -----------------------------------------------
 		Iterator& operator+=(size_t n) {
-			_ptr += n;
-			_check_bounds(_ptr - _container->_data);
+			size_t logical_pos = _get_logical_pos();
+			size_t new_logical_pos = logical_pos + n;
+			_check_arithmetic(new_logical_pos);
+
+			size_t new_physical_index = (new_logical_pos + _container->front_index) % _container->_capacity;
+			_ptr = _container->_data + new_physical_index;
 			return *this;
 		}
 
 		Iterator& operator-=(size_t n) {
-			if (_ptr == &_container->_data[_container->back_index + 1]) {
-				_ptr = &_container->_data[_container->back_index];
+			size_t logical_pos = _get_logical_pos();
+			if (n > logical_pos) {
+				_ptr = nullptr;
 				return *this;
 			}
-			_ptr -= n;
-			_check_bounds(_ptr - _container->_data);
+			size_t new_logical_pos = logical_pos - n;
+
+			size_t new_physical_index = (new_logical_pos + _container->front_index) % _container->_capacity;
+			_ptr = _container->_data + new_physical_index;
 			return *this;
 		}
 
@@ -165,21 +195,21 @@ public:
 			return tmp;
 		}
 
-		size_t operator+(const Iterator& other) const {
-			return _ptr + other._ptr;
+		//Iterator difference
+		ptrdiff_t operator-(const Iterator& other) const {
+			if (_container != other._container) {
+				throw std::invalid_argument("Iterators from different containers");
+			}
+			return static_cast<ptrdiff_t>(_get_logical_pos()) -
+				static_cast<ptrdiff_t>(other._get_logical_pos());
 		}
 
-		size_t operator-(const Iterator& other) const {
-			return _ptr - other._ptr;
-		}
-
-		// Comparison ---------------------------------------------------------
+		// Comparison ------------------------------------------------------------
 		Iterator& operator=(const Iterator& other) {
 			_ptr = other._ptr;
 			_container = other._container;
 			return *this;
 		}
-
 
 		bool operator==(const Iterator& other) const {
 			return _ptr == other._ptr;
@@ -190,7 +220,7 @@ public:
 		}
 
 		bool operator<(const Iterator& other) const {
-			return _ptr < other._ptr;
+			return _get_logical_pos() < other._get_logical_pos();
 		}
 
 		bool operator>(const Iterator& other) const {
@@ -205,7 +235,6 @@ public:
 			return !(*this < other);
 		}
 	};
-
 	//-------------------------------------------------------------------------------------
 
 
@@ -219,7 +248,8 @@ public:
 			front_index = 0;
 			back_index = 0;
 			_data[back_index] = value;
-		}else {
+		}
+		else {
 			size_t new_index = (back_index + 1) % _capacity;
 			_data[new_index] = value;
 			back_index = new_index;
@@ -237,7 +267,8 @@ public:
 			front_index = 0;
 			back_index = 0;
 			_data[front_index] = value;
-		}else {
+		}
+		else {
 			size_t new_index = (front_index - 1 + _capacity) % _capacity;
 			_data[new_index] = value;
 			front_index = new_index;
@@ -246,65 +277,53 @@ public:
 	}
 
 	void insert(const Iterator& pos, const T& value) {
-		if (pos == begin()) {
-			push_front(value);
-			return;
-		}
-		if (pos == end()) {
-			push_back(value);
-			return;
+		size_t logical_pos = pos - begin();
+
+		if (_size >= _capacity) {
+			reserve(_capacity ? _capacity * 2 : 10);
 		}
 
-		if (_size + 1 >= _capacity) {
-			reserve(_capacity < 10 ? 10 : _size * 2);
+		for (size_t i = _size; i > logical_pos; --i) {
+			size_t curr_phys = (front_index + i) % _capacity;
+			size_t prev_phys = (front_index + i - 1) % _capacity;
+			_data[curr_phys] = std::move(_data[prev_phys]);
 		}
-		size_t position = pos - begin();
-		for (size_t i = back_index + 1; i > position; --i) {
-			_data[i] = _data[i - 1];
-		}
-		
-		_data[position] = value;
+
+		size_t insert_phys = (front_index + logical_pos) % _capacity;
+		new (&_data[insert_phys]) T(value);
+
 		++_size;
-		++back_index;
+		back_index = (front_index + _size) % _capacity;
 	}
 
 	void insert(const Iterator& pos, size_t count, const T& value) {
-		if (count == 0) { return; }
+		if (count == 0) return;
 
-		if (_size + count >= _capacity) {
-			reserve(_capacity < 10 ? 10 : _size + count + _size / 2);
-		}
+		const size_t logical_pos = pos - begin();
 
-		if (pos == begin()) {
-			_size += count;
-			while (count > 0) {
-				push_front(value);
-				--count;
-			}
-			return;
-		}
-		if (pos == end()) {
-			_size += count;
-			while (count > 0) {
-				push_back(value);
-				--count;
-			}
-			return;
+		if (_size + count > _capacity) {
+			size_t new_capacity = std::max(_capacity * 2, _size + count);
+			reserve(new_capacity);
 		}
 
-		size_t position = &*pos - _data;
-		size_t j = 0;
-		for (size_t i = back_index + count; j < _size - position; --i) {
-			_data[i] = _data[i - count];
-			++j;
+		size_t elements_after = _size - logical_pos;
+
+		for (size_t i = 0; i < elements_after; ++i) {
+			size_t src_idx = _size - 1 - i;
+			size_t dst_idx = _size - 1 - i + count;
+			size_t src_physical = (front_index + src_idx) % _capacity;
+			size_t dst_physical = (front_index + dst_idx) % _capacity;
+			_data[dst_physical] = std::move(_data[src_physical]);
 		}
+
 		for (size_t i = 0; i < count; ++i) {
-			_data[position++] = value;
+			size_t physical_idx = (front_index + logical_pos + i) % _capacity;
+			new (&_data[physical_idx]) T(value);
 		}
-		_size += count;
-		back_index += count;
-	}
 
+		_size += count;
+		back_index = (front_index + _size) % _capacity;
+	}
 
 
 	//Access to elements:
@@ -360,14 +379,14 @@ public:
 	}
 
 	T& at(size_t pos) {
-		if (pos > back_index || pos < front_index) {
+		if (pos > _capacity) {
 			throw std::out_of_range("Iterator out of bounds");
 		}
 		return _data[pos];
 	}
 
 	const T& at(size_t pos) const {
-		if (pos >= back_index || pos <= front_index) {
+		if (pos > _capacity) {
 			throw std::out_of_range("Iterator out of bounds");
 		}
 		return _data[pos];
@@ -375,7 +394,7 @@ public:
 
 
 	//Removing items:
-	
+
 	void pop_back() {
 		if (empty()) {
 			throw std::out_of_range("pop_back on empty deque");
@@ -395,7 +414,7 @@ public:
 
 	void pop_front() {
 		if (empty()) {
-			throw std::out_of_range("pop_front on empty deque");
+			throw std::out_of_range("popfront_index on empty deque");
 		}
 
 		_data[front_index].~T();
@@ -412,43 +431,51 @@ public:
 	}
 
 	void erase(const Iterator& pos) {
-		if (pos == begin()) {
-			pop_front();
-			return;
-		}
-		if (pos == end()) {
-			pop_back();
-			return;
+		size_t logical_pos = pos - begin(); 
+
+		size_t physical_pos = (front_index + logical_pos) % _capacity;
+		_data[physical_pos].~T();
+
+		for (size_t i = logical_pos; i < _size - 1; ++i) {
+			size_t curr_phys = (front_index + i) % _capacity;
+			size_t next_phys = (front_index + i + 1) % _capacity;
+			_data[curr_phys] = std::move(_data[next_phys]);
 		}
 
-		size_t position = pos - begin();
-		_data[position].~T();
-		for (size_t i = position; i < back_index - 1; ++i) {
-			_data[i] = _data[i + 1];
-		}
 		--_size;
-		--back_index;
+		back_index = (front_index + _size) % _capacity;
 	}
 
-	void erase(const Iterator first, const Iterator& last) {
-		if (first > last) {
-			throw std::out_of_range("Iterator out of bounds");
+	void erase(const Iterator first, const Iterator last) {
+		if (last < first) {
+			throw std::out_of_range("Invalid iterator range");
 		}
 		if (first == last) {
-			erase(first);
+			return;
 		}
 
-		size_t pos_start = first - begin();
-		size_t pos_finish = last - begin();
-		size_t difference = pos_finish - pos_start;
-		for (size_t i = pos_start; i < pos_finish; ++i) {
-			_data[i].~T();
-			if (i + difference <= back_index) {
-				_data[i] = _data[i + difference];
-			}
+		const size_t first_logical = first - begin();
+		const size_t last_logical = last - begin();
+		const size_t count = last_logical - first_logical;
+
+		// Уничтожение элементов в диапазоне
+		for (size_t i = 0; i < count; ++i) {
+			size_t physical_idx = (front_index + first_logical + i) % _capacity;
+			_data[physical_idx].~T();
 		}
-		_size -= difference;
-		back_index -= difference;
+
+		// Сдвиг оставшихся элементов (двумя частями для кольцевого буфера)
+		size_t elements_after = _size - last_logical;
+
+		// Часть 1: Сдвигаем элементы после удаляемого диапазона влево
+		for (size_t i = 0; i < elements_after; ++i) {
+			size_t src_physical = (front_index + last_logical + i) % _capacity;
+			size_t dst_physical = (front_index + first_logical + i) % _capacity;
+			_data[dst_physical] = std::move(_data[src_physical]);
+		}
+
+		_size -= count;
+		back_index = (front_index + _size) % _capacity;
 	}
 
 
@@ -471,7 +498,7 @@ public:
 
 		T* new_data = new T[new_capacity]();
 		size_t new_index = 0;
-	
+
 		if (!empty()) {
 			size_t current = front_index;
 			for (size_t i = 0; i < _size; ++i) {
@@ -520,7 +547,7 @@ public:
 	}
 
 	//----------------------------------------- O P E R A T O R S ------------------------------------------------
-	Deque& operator=(const Deque& other){
+	Deque& operator=(const Deque& other) {
 		if (this != &other) {
 			delete[] _data;
 
@@ -556,8 +583,16 @@ public:
 		return *this;
 	}
 
-	T& operator[](size_t pos) {
-		return at(pos);
+	T& operator[](size_t index) {
+		if (index >= _size) throw std::out_of_range("Index out of range");
+		size_t physical_idx = (front_index + index) % _capacity;
+		return _data[physical_idx];
+	}
+
+	const T& operator[](size_t index) const {
+		if (index >= _size) throw std::out_of_range("Index out of range");
+		size_t physical_idx = (front_index + index) % _capacity;
+		return _data[physical_idx];
 	}
 
 };
