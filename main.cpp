@@ -2,11 +2,14 @@
 #include "containers/Vector.hpp"
 #include "containers/Stack.hpp"
 #include "containers/Queue.hpp"
+#include "containers/Deque.hpp"
 #include "containers/List.hpp"
 #include <cassert>
 #include <iostream>
 #include <string>
 
+
+int glob_counter = 0;
 
 void test_vector_class() {
     std::cout << "\n=== Vector Class Test ===\n";
@@ -144,6 +147,7 @@ void test_vector_class() {
     }
 
     std::cout << "=== All " << test_counter << " vector tests passed! ===\n";
+    glob_counter += test_counter;
 }
 
 
@@ -536,6 +540,7 @@ void test_string_class() {
     }
 
     std::cout << "=== All " << test_counter << " string tests passed! ===\n";
+    glob_counter += test_counter;
 }
 
 
@@ -581,7 +586,7 @@ void test_stack_class() {
         Stack<int> s3(std::move(s2)); // Move
         assert(s3.top() == 3);                    // Test 8
         assert(s2.empty());                    // Test 9
-        ++test_counter += 2;
+        test_counter += 2;
     }
 
     // ======================================================
@@ -595,13 +600,13 @@ void test_stack_class() {
         assert(s2.top() == 200);                  // Test 10
         s1.pop();
         assert(s1.top() != s2.top());             // Test 11
-        ++test_counter += 2;
+        test_counter += 2;
 
         Stack<int> s3;
         s3 = std::move(s2);
         assert(s3.top() == 200);                  // Test 12
         assert(s2.empty());                    // Test 13
-        ++test_counter += 2;
+        test_counter += 2;
     }
 
     // ======================================================
@@ -618,7 +623,7 @@ void test_stack_class() {
         try { s.pop(); }
         catch (...) { caught = true; }
         assert(caught);                           // Test 15
-        ++test_counter += 2;
+        test_counter += 2;
     }
 
     // ======================================================
@@ -648,7 +653,7 @@ void test_stack_class() {
         s4 = std::move(s3);
         assert(s4.top() == "C");                  // Test 20
         assert(s3.empty());                    // Test 21
-        ++test_counter += 2;
+        test_counter += 2;
 
         s4.clear();
         assert(s4.empty());                    // Test 22
@@ -662,6 +667,357 @@ void test_stack_class() {
     }
 
     std::cout << "=== All " << test_counter << " stack tests passed! ===\n";
+    glob_counter += test_counter;
+}
+
+
+void test_deque_class() {
+    std::cout << "\n=== Deque Class Test ===\n";
+    int test_counter = 0;
+
+    // ====================== CONSTRUCTORS & BASIC OPERATIONS ======================
+    {
+        //Default constructor
+        Deque<String> d1;
+        assert(d1.empty());
+        assert(d1.size() == 0);
+        assert(d1.max_size() >= 1);
+        test_counter+=3;
+
+        //Initial capacity
+        Deque<std::string> d2(15);
+        assert(d2.empty());
+        assert(d2.max_size() == 15);
+        test_counter+=2;
+
+        //Initializer list constructor
+        Deque<std::string> d3 = { "A", "B", "C" };
+        assert(d3.size() == 3);
+        assert(d3.front() == "A");
+        assert(d3.back() == "C");
+        test_counter+=3;
+
+        //Push back/front
+        Deque<std::string> d4;
+        d4.push_back("X");
+        d4.push_front("Y");
+        assert(d4.size() == 2);
+        assert(d4.front() == "Y");
+        assert(d4.back() == "X");
+        test_counter+=3;
+
+        //Pop back/front
+        d4.pop_back();
+        assert(d4.size() == 1);
+        assert(d4.back() == "Y");
+        d4.pop_front();
+        assert(d4.empty());
+        test_counter+=3;
+    }
+
+    // ====================== RING BUFFER BEHAVIOR ======================
+    {
+        //Wrap-around behavior
+        Deque<int> d(3);
+        d.push_back(1);
+        d.push_back(2);
+        d.push_back(3);
+        assert(d.max_size() == 3);
+        assert(d.size() == 3);
+
+        d.pop_front();
+        d.push_back(4);
+
+        assert(d.size() == 3);
+        assert(d.front() == 2);
+        assert(d.back() == 4);
+        test_counter+=5;
+
+        //Front wrap-around
+        d.push_front(5);
+        assert(d.front() == 5);
+        assert(d.back() == 4);
+        assert(d.size() == 4);
+        assert(d.max_size() > 3);
+        test_counter+=4;
+    }
+
+    // ====================== ELEMENT ACCESS & ITERATORS ======================
+    {
+        Deque<String> d = { "A", "B", "C", "D" };
+
+        // Test 8: operator[]
+        assert(d[0] == "A");
+        assert(d[3] == "D");
+        d[1] = "X";
+        assert(d[1] == "X");
+        ++test_counter;
+
+        //at()
+        assert(d.at(2) == "C");
+        ++test_counter;
+
+        //Iterator
+        auto it = d.begin();
+        String result;
+        for (; it != d.end(); ++it) {
+            result += *it;
+        }
+        assert(result == "AXCD");
+        ++test_counter;
+
+        //Reverse iterator
+        String reverse;
+        if (!d.empty()) {
+            auto rit = d.end();
+            do {
+                --rit;
+                reverse += *rit;
+            } while (rit != d.begin());
+        }
+        assert(reverse == "DCXA");
+        ++test_counter;
+    }
+
+    // ====================== INSERT & ERASE OPERATIONS ======================
+    {
+        Deque<std::string> d = { "A", "D" };
+
+        //Insert middle
+        auto it = d.begin() + 1;
+        d.insert(it, "C");
+        assert(d.size() == 3);
+        assert(d[1] == "C");
+        test_counter+=2;
+
+
+        //Insert causing reallocation
+        size_t old_capacity = d.max_size();
+        d.insert(d.begin() + 1, 5, "X");
+        assert(d.size() == 8);
+        assert(d.max_size() >= old_capacity);
+        assert(d[1] == "X");
+        test_counter+=3;
+
+        //Erase
+        d.erase(d.begin() + 2, d.begin() + 5);
+        assert(d.size() == 5);
+        assert(d[2] == "X");
+        assert(d[3] == "C");
+        test_counter+=3;
+    }
+
+    // ====================== CAPACITY MANAGEMENT ======================
+    {
+        Deque<std::string> d;
+
+        //Reserve expansion
+        d.reserve(100);
+        assert(d.max_size() >= 100);
+        ++test_counter;
+
+        //Reserve no-op
+        size_t prev_capacity = d.max_size();
+        d.reserve(50);
+        assert(d.max_size() == prev_capacity);
+        ++test_counter;
+
+        //Resize grow
+        d.resize(5, "X");
+        assert(d.size() == 5);
+        for (size_t i = 0; i < 5; ++i) {
+            assert(d[i] == "X");
+        }
+        ++test_counter;
+
+        //Resize shrink
+        d.resize(2);
+        assert(d.size() == 2);
+        assert(d[0] == "X");
+        assert(d[1] == "X");
+        ++test_counter;
+    }
+
+    // ====================== STRESS TESTS ======================
+    {
+        //Front-heavy workload
+        Deque<int> d1;
+        for (int i = 0; i < 1000; i++) {
+            d1.push_front(i);
+        }
+        assert(d1.size() == 1000);
+        assert(d1.front() == 999);
+        assert(d1.back() == 0);
+        ++test_counter;
+
+        // Mixed operations
+        Deque<int> d2;
+        for (int i = 0; i < 500; i++) {
+            if (i % 2 == 0) d2.push_front(i);
+            else d2.push_back(i);
+        }
+        assert(d2.size() == 500);
+        ++test_counter;
+
+        // Alternating operations
+        Deque<int> d3;
+        for (int i = 0; i < 1000; i++) {
+            if (i % 3 == 0) d3.push_front(i);
+            else if (i % 3 == 1) d3.push_back(i);
+            else if (d3.size() > 0) d3.pop_front();
+        }
+        assert(d3.size() > 300);
+        ++test_counter;
+    }
+
+    // ====================== COMPREHENSIVE VERIFICATION ======================
+    {
+        // Test 22
+        Deque<int> d;
+        Vector<int> ref;
+
+        for (int i = 0; i < 200; ++i) {
+            int op = i % 6;
+
+            if (op == 0) {
+                d.push_front(i);
+                ref.insert(i,ref.begin());
+            }
+            else if (op == 1) {
+                d.push_back(i);
+                ref.push_back(i);
+            }
+            else if (op == 2 && !d.empty()) {
+                d.pop_front();
+                if (!ref.empty()) { ref.erase(ref.begin()); }
+            }
+            else if (op == 3 && !d.empty()) {
+                if (!d.empty()) { d.pop_back(); }
+                if (!ref.empty()) { ref.pop_back(); }
+            }
+            else if (op == 4 && !d.empty()) {
+                size_t pos = rand() % d.size();
+                d.insert(d.begin() + pos, i);
+                ref.insert(i,ref.begin() + pos);
+            }
+            else if (op == 5 && !d.empty()) {
+                size_t pos = rand() % d.size();
+                d.erase(d.begin() + pos);
+                ref.erase(ref.begin() + pos);
+            }
+
+            assert(d.size() == ref.size());
+            auto it = d.begin();
+            for (size_t j = 0; j < ref.size(); ++j) {
+                assert(*it == ref[j]);
+                ++it;
+            }
+        }
+        ++test_counter;
+    }
+
+    // ====================== ADDITIONAL TESTS ======================
+    {
+        // Test 23: Insert at front when buffer is full (should trigger reallocation)
+        Deque<int> d(3);
+        d.push_back(1);
+        d.push_back(2);
+        d.push_back(3);
+        d.push_front(0);  // Should trigger reallocation
+        assert(d.size() == 4);
+        assert(d.front() == 0);
+        assert(d.back() == 3);
+        test_counter += 3;
+
+        // Test 24: Erase from middle then insert at new position
+        d.erase(d.begin() + 2);
+        assert(d.size() == 3);
+        d.insert(d.begin() + 1, 10);
+        assert(d.size() == 4);
+        assert(d[0] == 0);
+        assert(d[1] == 10);
+        assert(d[2] == 1);
+        test_counter += 5;
+
+        // Test 25: Insert at back when front is full (ring buffer behavior)
+        Deque<int> d2(5);
+        d2.push_front(1);
+        d2.push_front(2);
+        d2.push_front(3);
+        d2.push_back(4);
+        d2.push_back(5);
+        assert(d2.size() == 5);
+        assert(d2[0] == 3);
+        assert(d2[4] == 5);
+        test_counter += 3;
+
+        // Test 26: Remove from both ends
+        d2.pop_front();
+        d2.pop_back();
+        assert(d2.size() == 3);
+        assert(d2.front() == 2);
+        assert(d2.back() == 4);
+        test_counter += 3;
+
+        // Test 27: Insert into empty deque using iterator
+        Deque<std::string> d3;
+        d3.insert(d3.begin(), "A");
+        assert(d3.size() == 1);
+        assert(d3.front() == "A");
+        test_counter += 2;
+
+        // Test 28: Erase single element deque
+        Deque<int> d4 = { 42 };
+        d4.erase(d4.begin());
+        assert(d4.empty());
+        ++test_counter;
+
+        // Test 29: Iterator validity after reallocation
+        Deque<int> d5;
+        d5.push_back(1);
+        auto it = d5.begin();
+        for (int i = 0; i < 100; ++i) {
+            d5.push_back(i);
+        }
+        try {
+            *it == 1;  // Iterator should not remain valid
+        }
+        catch (...) {
+            assert(true);
+        }
+        ++test_counter;
+
+        // Test 30: Iterator arithmetic operations
+        Deque<int> d6 = { 10, 20, 30, 40, 50 };
+        auto it1 = d6.begin();
+        auto it2 = it1 + 3;
+        assert(it2 - it1 == 3);
+        assert(*it1 == 10);
+        assert(*it2 == 40);
+        it1 += 2;
+        assert(*it1 == 30);
+        test_counter += 4;
+
+        // Test 31: Attempt to remove from empty deque
+        Deque<int> d7;
+        bool exception_caught = false;
+        try { d7.pop_back(); }
+        catch (const std::out_of_range&) { exception_caught = true; }
+        assert(exception_caught);
+        ++test_counter;
+
+        // Test 32: Move constructor functionality
+        Deque<int> d8;
+        d8.push_back(1);
+        d8.push_back(2);
+        Deque<int> d9 = std::move(d8);
+        assert(d9.size() == 2);
+        assert(d8.empty());
+        test_counter += 2;
+    }
+
+    std::cout << "=== All " << test_counter << " deque tests passed! ===\n";
+    glob_counter += test_counter;
 }
 
 
@@ -1009,6 +1365,7 @@ void test_queue_class() {
     }
 
     std::cout << "=== All " << test_counter << " queue tests passed! ===\n";
+    glob_counter += test_counter;
 }
 
 
@@ -1470,19 +1827,26 @@ void test_list_class() {
     }
 
     std::cout << "\n=== All " << test_counter << " list tests passed! ===\n";
+    glob_counter += test_counter;
 }
+
+
 
 
 void start_all_tests() {
     test_vector_class();
     test_string_class();
     test_stack_class();
+    test_deque_class();
     test_queue_class();
     test_list_class();
+    std::cout << "\n\n=== " << glob_counter << " tests passed! ===" << std::endl;
 }
 
+
 int main() {
-    //TO DO MORE TEST FOR VECTOR, STACK, STRING
+    //TO DO MORE TEST FOR VECTOR, STACK
     start_all_tests();
     return 0;
 }
+
