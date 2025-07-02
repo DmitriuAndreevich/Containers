@@ -1,14 +1,20 @@
-CC=clang++
-CFLAGS=-pedantic-errors -gdwarf-4 -std=c++17
-LDFLAGS=
-SOURCES=main.cpp
-OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=containers
+CC = clang++
+CFLAGS = -pedantic-errors -gdwarf-4 -std=c++17 -Wall -Wextra
+LDFLAGS =
 
-all: $(SOURCES) $(EXECUTABLE)
-    
-$(EXECUTABLE): $(OBJECTS) 
-	$(CC) $(SOURCES) $(CFLAGS) $(LDFLAGS) -o $@
+SOURCES = main.cpp
+OBJECTS = $(SOURCES:.cpp=.o)
+EXECUTABLE = containers
+
+all: $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJECTS)
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+
+%.o: %.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf *.o $(EXECUTABLE)
+	rm -f $(OBJECTS) $(EXECUTABLE)
+
+.PHONY: all clean
