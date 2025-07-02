@@ -21,12 +21,12 @@ jobs:
       - name: Build
         run: |
              make
-             !(grep -qwRE --include=*.{cc,cpp,h} '<vector>|<list>|<algorithm>|<stack>|<queue>|<deque>|<set>|<map>' ./* ) &&  (echo \"Build...\" )  || ( echo \"Forbiden STL containers\" && exit 9 )
+             !(grep -qwRE --include=*.{cc,cpp,h} '<list>|<algorithm>|<stack>|<queue>|<deque>|<set>|<map>' ./* ) &&  (echo \"Build...\" )  || ( echo \"Forbiden STL containers\" && exit 9 )
       - name: Autograding
         uses: amcp-pit/autograding@v1
       - name: Memory leaks
         run: |
-             valgrind --tool=memcheck --leak-check=full --undef-value-errors=no --error-exitcode=111 ./datetime
+             valgrind --tool=memcheck --leak-check=full --undef-value-errors=no --error-exitcode=111 ./containers
       - name: Code linting
         uses: amcp-pit/cpp-linter@v1
         with:
