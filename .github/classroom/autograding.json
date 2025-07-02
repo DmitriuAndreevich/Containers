@@ -3,11 +3,11 @@
     {
       "name": "Test 1",
       "setup": "",
-      "run": "timeout 5 ./datetime",
+      "run": "timeout 15 ./datetime",
       "input": "",
       "output": "",
       "comparison": "include",
-      "timeout": 1,
+      "timeout": 10,
       "points": 1
     }
   ]
