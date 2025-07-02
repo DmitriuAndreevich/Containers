@@ -3,7 +3,7 @@
     {
       "name": "Test 1",
       "setup": "",
-      "run": "timeout 15 ./datetime",
+      "run": "timeout 15 ./containers",
       "input": "",
       "output": "",
       "comparison": "include",
