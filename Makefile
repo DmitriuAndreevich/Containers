@@ -1,5 +1,6 @@
 CC = clang++
-CFLAGS = -pedantic-errors -gdwarf-4 -std=c++17 -Wall -Wextra
+CFLAGS = -pedantic-errors -gdwarf-4 -std=c++17 -Wall -Wextra \
+         -Wno-unused-variable -Wno-self-assign -Wno-deprecated-copy -Wno-reorder -Wno-unused-result
 LDFLAGS =
 
 SOURCES = main.cpp
