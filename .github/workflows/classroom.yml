@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   Checking-Solution:
-    runs-on: ubuntu
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Get repository code
@@ -22,7 +22,15 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install valgrind  # Install valgrind
+          sudo apt-get install valgrind # Install valgrind
+          # Install a specific version of g++ (example: g++-11)
+          sudo apt-get install g++-11 
+          # Update alternatives to use g++-11 as the default g++ and gcc
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 110
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 110
+          # Verify the version (optional)
+          g++ --version
+          gcc --version
           # Add more dependencies if needed (e.g., gtest)
 
       - name: Build
