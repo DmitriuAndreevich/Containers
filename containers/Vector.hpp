@@ -26,6 +26,7 @@
 #include <stdexcept>
 #include <type_traits>
 #include <initializer_list>
+#include <cstddef>
 
 
 template <typename T>
@@ -115,6 +116,8 @@ public:
 
         // Increment/Decrement ------------------------------------------------
         Iterator& operator++() {
+            //If iterator points to the last element(end() - 1), after increment it will become end() - this is valid
+            //If iterator is already end(), increment is invalid - check must be before change
             _check_bounds(_ptr - _container._data);
             ++_ptr;
             return *this;
@@ -127,8 +130,10 @@ public:
         }
 
         Iterator& operator--() {
-            --_ptr;
+            //If iterator is end(), decrement will move it to the last element - this is valid
+            //If iterator is begin(), decrement is invalid - check before change
             _check_bounds(_ptr - _container._data);
+            --_ptr;
             return *this;
         }
 
@@ -247,7 +252,7 @@ public:
         return Iterator(*this, _data + _size);
     }
 
-    void erase(Iterator& first, Iterator& last) {
+    void erase(const Iterator& first,const Iterator& last) {
         if (first < begin() || first >= end() || first > last) { //end points out of bounds array
             throw std::out_of_range("Iterator out of bounds");
         }
@@ -266,7 +271,7 @@ public:
         _size -= difference;
     }
 
-    void erase(Iterator& position) {
+    void erase(const Iterator& position) {
         if (position < begin() || position >= end()) {
             throw std::out_of_range("Iterator out of bounds");
         }
@@ -330,7 +335,6 @@ public:
 
         T* new_data = new T[new_capacity];
 
-
         for (size_t i = 0; i < _size; ++i) {
             new_data[i] = std::move(_data[i]);
         }
@@ -340,7 +344,7 @@ public:
         _capacity = new_capacity;
     }
 
-    void resize(size_t new_size, const T& default_value) {
+    void resize(size_t new_size, const T& default_value = T()) {
         if (new_size < _size) {
             if (!is_trivial_T) {
                 for (size_t i = new_size; i < _size; ++i) {
@@ -424,4 +428,3 @@ public:
     }
 
 };
-
