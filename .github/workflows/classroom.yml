@@ -47,7 +47,7 @@ jobs:
 
       - name: Memory leaks
         run: |
-          valgrind --tool=memcheck --leak-check=full --undef-value-errors=no --error-exitcode=111 ./containers
+          valgrind --tool=memcheck --leak-check=full --undef-value-errors=no --error-exitcode=111 ./containers_app
 
       - name: Code linting
         uses: amcp-pit/cpp-linter@v1
