@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   Checking-Solution:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu
     timeout-minutes: 5
     steps:
       - name: Get repository code
