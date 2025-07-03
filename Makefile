@@ -4,7 +4,7 @@ LDFLAGS =
 
 SOURCES = main.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
-EXECUTABLE = containers
+EXECUTABLE = containers_app
 
 all: $(EXECUTABLE)
 
