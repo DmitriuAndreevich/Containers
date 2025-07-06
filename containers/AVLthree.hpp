@@ -12,9 +12,9 @@
 */
 #pragma once 
 #include <stdexcept>
-#include <initializer_list>
 
-template<typename T>
+#define T int
+//template<typename T>
 class AVLthree {
 private:
 	struct Node {
@@ -26,7 +26,7 @@ private:
 
 		Node() : left(nullptr), right(nullptr), parent(nullptr), height(1) {}
 		Node(const T& _data, Node* _left = nullptr, Node* _right = nullptr, Node* _parent = nullptr, int _height = 1) :
-		 data(_data), left(_left), right(_right), parent(_parent), height(_height) {}
+			data(_data), left(_left), right(_right), parent(_parent), height(_height) {}
 		Node(const Node& node) :
 			data(node._data), left(node._left), right(node._right), parent(node._parent), height(node._height) {}
 
@@ -46,7 +46,7 @@ private:
 
 		//Updates the height field of the current node based on the heights of its children.
 		void updateHeight() {
-			height = std::max( ((right) ? right->height : 0), ((left) ? left->height : 0) ) + 1;
+			height = std::max(((right) ? right->height : 0), ((left) ? left->height : 0)) + 1;
 		}
 
 		Node* minNode() const {
@@ -84,25 +84,180 @@ private:
 			}
 			return p;
 		}
-	 };
-	
+	};
+
 	Node* root = nullptr;
 	size_t count = 0;
 
-	Node* rightRotate(Node* b);
-	Node* leftRotate(Node* b);
-	Node* doubleRightRotate(Node* b);
-	Node* doubleLeftRotate(Node* b);
+	Node* rightRotate(Node* b) {
+		if (!b || !b->left) { return b; }
+		Node* a = b->left;
+		Node* b_parent = b->parent;
+
+		if (root == b) {
+			root = a;
+		}
+		else {
+			if (b == b_parent->left) {
+				b_parent->left = a;
+			}
+			else {
+				b_parent->right = a;
+			}
+		}
+
+		b->parent = a;
+		b->left = a->right;
+		if (a->right) {
+			a->right->parent = b;
+		}
+		a->right = b;
+		a->parent = b_parent;
+		b->updateHeight();
+		a->updateHeight();
+		return a;
+	}
+	Node* leftRotate(Node* b) {
+		if (!b || !b->right) { return b; }
+		Node* a = b->right;
+		Node* b_parent = b->parent;
+
+		if (root == b) {
+			root = a;
+		}
+		else {
+			if (b == b_parent->left) {
+				b_parent->left = a;
+			}
+			else {
+				b_parent->right = a;
+			}
+		}
+
+		b->right = a->left;
+		if (a->left) {
+			a->left->parent = b;
+		}
+		a->left = b;
+		b->parent = a;
+		a->parent = b_parent;
+		b->updateHeight();
+		a->updateHeight();
+		return a;
+	}
+	Node* doubleRightRotate(Node* b) {
+		if (!b || !b->left || !b->left->right) {
+			return b;
+		}
+
+		Node* a = b->left;
+		Node* c = a->right;
+		Node* b_parent = b->parent;
+
+		if (root == b) {
+			root = c;
+		}
+		else {
+			if (b == b_parent->left) {
+				b_parent->left = c;
+			}
+			else {
+				b_parent->right = c;
+			}
+		}
+
+		a->right = c->left;
+		if (c->left) {
+			c->left->parent = a;
+		}
+		b->left = c->right;
+		if (c->right) {
+			c->right->parent = b;
+		}
+
+		c->left = a;
+		a->parent = c;
+		c->right = b;
+		b->parent = c;
+		c->parent = b_parent;
+
+		a->updateHeight();
+		b->updateHeight();
+		c->updateHeight();
+		return c;
+	}
+	Node* doubleLeftRotate(Node* b) {
+		if (!b || !b->right || !b->right->left) { return b; }
+
+		Node* a = b->right;
+		Node* c = a->left;
+		Node* b_parent = b->parent;
+
+		if (root == b) {
+			root = c;
+		}
+		else {
+			if (b == b_parent->left) {
+				b_parent->left = c;
+			}
+			else {
+				b_parent->right = c;
+			}
+		}
+
+		a->left = c->right;
+		if (c->right) {
+			c->right->parent = a;
+		}
+
+		b->right = c->left;
+		if (c->left) {
+			c->left->parent = b;
+		}
+
+		c->left = b;
+		c->right = a;
+		c->parent = b_parent;
+		a->parent = c;
+		b->parent = c;
+
+		a->updateHeight();
+		b->updateHeight();
+		c->updateHeight();
+		return c;
+	}
 public:
 
 	//Constructor and destructor
-	AVLthree();
-	AVLthree(size_t count, const T& value);
+	AVLthree() : root(nullptr), count(0) {}
+	AVLthree(size_t _count, const T& value) {
+		while (count < _count) {
+			insert(value);
+		}
+	}
 	AVLthree(size_t count) : AVLthree(count, T()) {}
-	AVLthree(const AVLthree& other);
-	AVLthree(AVLthree&& other);
-	AVLthree(std::initializer_list<T> init);
-	~AVLthree();
+	AVLthree(const AVLthree& other) {
+		if (!other.root) {
+			root = nullptr;
+			count = 0;
+			return;
+		}
+
+
+
+		root = new T(*other.root);
+
+
+	}
+	AVLthree(AVLthree&& other) {
+		root = other.root;
+		count = other.count;
+		other.root = nullptr;
+		other.count = 0;
+	}
+	~AVLthree() {
+		clear();
+	}
 
 
 	//--------------------------------- I T E R A T O R -----------------------------------
@@ -120,121 +275,62 @@ public:
 
 	};
 
-
 	//-------------------------------------------------------------------------------------
 
-
-
-
-
-
-	//....
-
 	void remove(Node* node) {
-		//...
+
 	}
 
-	
+	void insert(const T& value) {
 
+	}
 
+	bool contains(const T& value) const {
 
+	}
 
+	bool find(const T& value) const {
+
+	}
+
+	Node* findMin(Node* node) const {
+
+	}
+
+	Node* findMax(Node* node) const {
+
+	}
+
+	void clear() {
+
+	}
+
+	bool empty() const {
+		return count == 0;
+	}
+
+	size_t size() const {
+		return count;
+	}
+
+	size_t height() const {
+
+	}
+
+	//--------------------------------- O P E A T O R S -------------------------------------
+
+	AVLthree& operator=(const AVLthree& other) {
+
+	}
+
+	AVLthree& operator=(AVLthree&& other) {
+		clear();
+		root = other.root;
+		count = other.count;
+		other.root = nullptr;
+		other.count = 0;
+	}
 
 };
 
-
-
-//template<typename T>
-typename AVLthree::Node* AVLthree::rightRotate(typename AVLthree::Node* b) {
-	if (!b || !b->left) { return b; }
-	Node* a = b->left;
-	Node* b_parent = b->parent;
-
-	if (root == b) {
-		root = a;
-	}
-	else {
-		if (b == b_parent->left) {
-			b_parent->left = a;
-		}
-		else {
-			b_parent->right = a;
-		}
-	}
-
-	b->parent = a;
-	b->left = a->right;
-	if (a->right) {
-		a->right->parent = b;
-	}
-	a->right = b;
-	a->parent = b_parent;
-	b->updateHeight();
-	a->updateHeight();
-	return a;
-}
-
-
-//template<typename T>
-typename AVLthree::Node* AVLthree::leftRotate(typename AVLthree::Node* b) {
-	if (!b || !b->right) { return b; }
-	Node* a = b->right;
-	Node* b_parent = b->parent;
-
-	if (root == b) {
-		root = a;
-	}
-	else {
-		if (b == b_parent->left) {
-			b_parent->left = a;
-		}
-		else {
-			b_parent->right = a;
-		}
-	}
-
-	b->right = a->left;
-	if (a->left) {
-		a->left->parent = b;
-	}
-	a->left = b;
-	b->parent = a;
-	a->parent = b_parent;
-	b->updateHeight();
-	a->updateHeight();
-	return a;
-}
-
-
-//template<typename T>
-typename AVLthree::Node* AVLthree::doubleRighttRotate(typename AVLthree::Node* b) {
-	if (!b || !b->left)
-
-
-}
-
-
-//template<typename T>
-typename AVLthree::Node* AVLthree::doubleLeftRotate(typename AVLthree::Node* b) {
-	if (!b || !b->right) { return b; }
-
-	Node* a = b->right;
-	Node* c = a->left;
-	Node* b_parent = b->parent;
-
-	if (root == b) {
-		root = c;
-	}
-	else {
-		if (b == b_parent->left) {
-			b_parent->left = c;
-		}
-		else {
-			b_parent->right = c;
-		}
-	}
-
-
-
-}
 
