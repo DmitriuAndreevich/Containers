@@ -8,6 +8,7 @@
 /*
 *  type T must have :
 *   - default constructor
+*   - T must be able to be compared with other objects T
 *   - move semantic
 */
 #pragma once 
@@ -28,7 +29,7 @@ private:
 		Node(const T& _data, Node* _left = nullptr, Node* _right = nullptr, Node* _parent = nullptr, int _height = 1) :
 			data(_data), left(_left), right(_right), parent(_parent), height(_height) {}
 		Node(const Node& node) :
-			data(node._data), left(node._left), right(node._right), parent(node._parent), height(node._height) {}
+			data(node.data), left(node.left), right(node.right), parent(node.parent), height(node.height) {}
 
 		~Node() {
 			if (left) {
@@ -84,6 +85,7 @@ private:
 			}
 			return p;
 		}
+
 	};
 
 	Node* root = nullptr;
@@ -226,6 +228,21 @@ private:
 		c->updateHeight();
 		return c;
 	}
+
+	//Function for copy constructor
+	Node* copyThree(const Node& node) {
+		if (!node) {
+			return nullptr;
+		}
+
+		Node* newNode = new T(node);
+		
+		newNode->left = copyThree(node.left);
+		newNode->right = copyThree(node.right);
+
+
+		return newNode;
+	}
 public:
 
 	//Constructor and destructor
@@ -237,17 +254,8 @@ public:
 	}
 	AVLthree(size_t count) : AVLthree(count, T()) {}
 	AVLthree(const AVLthree& other) {
-		if (!other.root) {
-			root = nullptr;
-			count = 0;
-			return;
-		}
-
-
-
-		root = new T(*other.root);
-
-
+		root = copyThree(other.root);
+		count = other.count;
 	}
 	AVLthree(AVLthree&& other) {
 		root = other.root;
@@ -268,37 +276,282 @@ public:
 		AVLthree* parent_three;
 
 	public:
+		Iterator() = delete;
+		Iterator(Node* _current, AVLthree* _parent_three) : current(_current), parent_three(_parent_three) {}
+		Iterator(const Iterator& other) : current(other.current), parent_three(other.parent_three) {}
+
+		void is_valid() const {
+			if (!current) {
+				throw std::runtime_error("Iterator equal nullptr");
+			}
+		}
+
+		T& operator*() {
+			is_valid(current);
+			return *current;
+		}
+
+		T* operator->() {
+			is_valid(current);
+			return current;
+		}
+
+		const T& operator*() const {
+			is_valid(current);
+			return *current;
+		}
+
+		const T* operator->() const {
+			is_valid(current);
+			return current;
+		}
 
 
+		// Increment/Decrement ------------------------------------------------
+		Iterator& operator++() {
+			if (current->right) {
+				current = current->right;
+				while (current->left) {
+					current = current->left;
+				}
+				return current;
+			}
+			while (current->parent) {
+				if (current->parent->left == current) {
+					return current->parent;
+				}
+				current = current->parent;
+			}
+			return current;
+		}
+
+		Iterator operator++(int) {
+			Iterator tmp(*this);
+			++(*this);
+			return tmp;
+		}
+
+		Iterator& operator--() {
+			if (current->left) {
+				current = current->left;
+				while (current->right) {
+					current->right;
+				}
+				return current;
+			}
+			while (current->parent) {
+				if (current == current->parent->right) {
+					current = current->parent;
+				}
+				else {
+					return current;
+				}
+			}
+			return current;
+		}
+
+		Iterator operator--(int) {
+			Iterator tmp(*this);
+			--(*this);
+			return tmp;
+		}
 
 
+		// Arithmetic operations --------------------------------------------
+		Iterator& operator+=(size_t n) {
+			for (size_t i = 0; i < n; ++i) {
+				++(*this);
+			}
+		}
+
+		Iterator& operator-=(size_t n) {
+			for (size_t i = 0; i < n; ++i) {
+				--(*this);
+			}
+		}
+
+		Iterator operator+(size_t n) const {
+			Iterator tmp(*this);
+			tmp += n;
+			return tmp;
+		}
+
+		Iterator operator-(size_t n) const {
+			Iterator tmp(*this);
+			tmp -= n;
+			return tmp;
+		}
+
+
+		// Comparison ---------------------------------------------------------
+		bool operator==(const Iterator& other) const {
+			return current == other.current;
+		}
+
+		bool operator!=(const Iterator& other) const {
+			return !(current == other.current);
+		}
 
 	};
 
 	//-------------------------------------------------------------------------------------
 
 	void remove(Node* node) {
+		if (!node) {
+			return;
+		}
 
+		if (!node->left && !node->right) {
+			if (node->parent) {
+				if (node->parent->right == node) {
+					node->parent->right = nullptr;
+				}
+				else {
+					node->parent->left = nullptr;
+				}
+			}
+			else {
+				root = nullptr;
+			}
+			delete node;
+			--count;
+		}
+		else if (node->left && node->right) {
+			Node* min = findMin(node->right);
+			node->data = min->data;
+			remove(min);
+			--count;
+		}
+		else {
+			if (node->parent) {
+				if (node->parent->right == node) {
+					if (node->right) {
+						node->right->parent = node->parent;
+						node->parent->right = node->right;
+					}
+					else {
+						node->left->parent = node->parent;
+						node->parent->right = node->left;
+					}
+				}
+				else {
+					if (node->right) {
+						node->right->parent = node->parent;
+						node->parent->left = node->right;
+					}
+					else {
+						node->left->parent = node->parent;
+						node->parent->left = node->left;
+					}
+				}
+			}
+			else
+			{
+				if (node->right) {
+					root = node->right;
+					node->right->parent = nullptr;
+				}
+				else {
+					root = node->left;
+					node->left->parent = nullptr;
+				}
+			}
+			delete node;
+			--count;
+		}
 	}
 
 	void insert(const T& value) {
+		if (!root) {
+			root = new Node(value);
+			++count;
+			return;
+		}
 
+		Node* current = root;
+		while (current) {
+			if (value >= current->data) {
+				if (!current->right) { 
+					current->right = new Node(value, nullptr, nullptr, current);
+					break;
+				}
+				current = current->right;
+			}
+			else {
+				if (!current->left) { 
+					current->left = new Node(value,nullptr,nullptr,current);
+					break; 
+				}
+				current = current->left;
+			}
+		}
+		++count;
 	}
 
 	bool contains(const T& value) const {
-
+		Node* current = root;
+		while (current) {
+			if (current->data == value) {
+				return true;
+			}
+			if (value >= current->data) {
+				if (!current->right) {
+					return false;
+				}
+				current = current->right;
+			}
+			else {
+				if (!current->left) {
+					return false;
+				}
+				current = current->left;
+			}
+		}
+		return false;
 	}
 
-	bool find(const T& value) const {
-
+	Node* find(const T& value) const {
+		Node* current = root;
+		while (current) {
+			if (current->data == value) {
+				return current;
+			}
+			if (value >= current->data) {
+				if (!current->right) {
+					return nullptr;
+				}
+				current = current->right;
+			}
+			else {
+				if (!current->left) {
+					return nullptr;
+				}
+				current = current->left;
+			}
+		}
+		return nullptr;
 	}
 
 	Node* findMin(Node* node) const {
-
+		if (!node->left) {
+			return node;
+		}
+		Node* current = node;
+		while (current->left) {
+			current = current->left;
+		}
+		return current;
 	}
 
 	Node* findMax(Node* node) const {
-
+		if (!node->right) {
+			return node;
+		}
+		Node* current = node;
+		while (current->right) {
+			current = current->right;
+		}
+		return current;
 	}
 
 	void clear() {
@@ -314,7 +567,7 @@ public:
 	}
 
 	size_t height() const {
-
+		
 	}
 
 	//--------------------------------- O P E A T O R S -------------------------------------
