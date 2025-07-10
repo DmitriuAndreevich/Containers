@@ -36,7 +36,7 @@
 
 
 template<typename T>
-class AVLthree {
+class AVLtree {
 private:
 	struct Node {
 		T data;
