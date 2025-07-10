@@ -35,8 +35,7 @@
 #include <stdexcept>
 
 
-#define T int
-//template<typename T>
+template<typename T>
 class AVLthree {
 private:
 	struct Node {
