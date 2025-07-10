@@ -1,7 +1,7 @@
 /*
-*  AVLthree Documentation
+*  AVLtree Documentation
 *
-*  The AVLthree class is a self-balancing binary search tree implementation (AVL Tree).
+*  The AVLtree class is a self-balancing binary search tree implementation (AVL Tree).
 *  It maintains O(log n) time complexity for insertions, deletions, and lookups by ensuring
 *  that the tree remains balanced using AVL rotations.
 *
@@ -299,24 +299,24 @@ private:
 	}
 public:
 	//Constructor and destructor
-	AVLthree() : root(nullptr), count(0) {}
-	AVLthree(size_t _count, const T& value) {
+	AVLtree() : root(nullptr), count(0) {}
+	AVLtree(size_t _count, const T& value) {
 		while (count < _count) {
 			insert(value);
 		}
 	}
-	AVLthree(size_t count) : AVLthree(count, T()) {}
-	AVLthree(const AVLthree& other) {
+	AVLtree(size_t count) : AVLtree(count, T()) {}
+	AVLtree(const AVLtree& other) {
 		root = copyThree(other.root);
 		count = other.count;
 	}
-	AVLthree(AVLthree&& other) {
+	AVLtree(AVLtree&& other) {
 		root = other.root;
 		count = other.count;
 		other.root = nullptr;
 		other.count = 0;
 	}
-	~AVLthree() {
+	~AVLtree() {
 		clear();
 	}
 
@@ -324,11 +324,11 @@ public:
 	class Iterator {
 	private:
 		Node* current;
-		AVLthree* parent_three;
+		AVLtree* parent_three;
 
 	public:
 		Iterator() = delete;
-		Iterator(Node* _current, AVLthree* _parent_three) : current(_current), parent_three(_parent_three) {}
+		Iterator(Node* _current, AVLtree* _parent_three) : current(_current), parent_three(_parent_three) {}
 		Iterator(const Iterator& other) : current(other.current), parent_three(other.parent_three) {}
 
 		void is_valid() const {
@@ -637,13 +637,13 @@ public:
 
 	//--------------------------------- O P E A T O R S -------------------------------------
 
-	AVLthree& operator=(const AVLthree& other) {
+	AVLtree& operator=(const AVLtree& other) {
 		clear();
 		root = copyThree(other.root);
 		count = other.count;
 	}
 
-	AVLthree& operator=(AVLthree&& other) {
+	AVLtree& operator=(AVLtree&& other) {
 		clear();
 		root = other.root;
 		count = other.count;
