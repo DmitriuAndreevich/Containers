@@ -14,6 +14,7 @@
 #pragma once 
 #include <stdexcept>
 
+
 #define T int
 //template<typename T>
 class AVLthree {
@@ -41,7 +42,7 @@ private:
 		}
 
 		//Calculates the balance factor of the current node, that is, the difference between the height of the right and left subtree.
-		int balance() const {
+		size_t balance() const {
 			return ((left) ? left->height : 0) - ((right) ? right->height : 0);
 		}
 
@@ -229,7 +230,7 @@ private:
 		return c;
 	}
 
-	//Function for copy constructor
+	//Function for copy constructor and copy =
 	Node* copyThree(const Node& node) {
 		if (!node) {
 			return nullptr;
@@ -242,6 +243,16 @@ private:
 
 
 		return newNode;
+	}
+	
+	//Function for destructor
+	void clear(Node* node) {
+		if (!node) {
+			return;
+		}
+		clear(node->right);
+		clear(node->left);
+		delete node;
 	}
 public:
 
@@ -459,6 +470,28 @@ public:
 			delete node;
 			--count;
 		}
+
+
+		while (current) {
+			current->updateHeight();
+			if (current->balance() == -2) {
+				if (current->left && current->left->balance() == 1) {
+					current = doubleRightRotate(current);
+				}
+				else {
+					current = rightRotate(current);
+				}
+			}
+			if (current->balance() == 2) {
+				if (current->right && current->right->balance() == -1) {
+					current = doubleLeftRotate(current);
+				}
+				else {
+					current = leftRotate(current);
+				}
+			}
+			current = current->parent;
+		}
 	}
 
 	void insert(const T& value) {
@@ -486,6 +519,28 @@ public:
 			}
 		}
 		++count;
+
+		while (current) {
+			current->updateHeight();
+			if (current->balance() == -2) {
+				if (current->left && current->left->balance() == 1) {
+					current = doubleRightRotate(current);
+				}
+				else {
+					current = rightRotate(current);
+				}
+			}
+			if (current->balance() == 2) {
+				if (current->right && current->right->balance() == -1) {
+					current = doubleLeftRotate(current);
+				}
+				else {
+					current = leftRotate(current);
+				}
+			}
+			current = current->parent;
+		}
+
 	}
 
 	bool contains(const T& value) const {
@@ -555,7 +610,9 @@ public:
 	}
 
 	void clear() {
-
+		clear(root);
+		root = nullptr;
+		count = 0;
 	}
 
 	bool empty() const {
@@ -566,14 +623,20 @@ public:
 		return count;
 	}
 
-	size_t height() const {
-		
+	size_t height(Node* node = root) const {
+		if (!node) {
+			return 0;
+		}
+
+		return std::max(height(node->left), height(node->right)) + 1;
 	}
 
 	//--------------------------------- O P E A T O R S -------------------------------------
 
 	AVLthree& operator=(const AVLthree& other) {
-
+		clear();
+		root = copyThree(other.root);
+		count = other.count;
 	}
 
 	AVLthree& operator=(AVLthree&& other) {
