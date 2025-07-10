@@ -1,15 +1,35 @@
 /*
+*  AVLthree Documentation
 *
-* 
-* 
-* 
-*/
-
-/*
-*  type T must have :
-*   - default constructor
-*   - T must be able to be compared with other objects T
-*   - move semantic
+*  The AVLthree class is a self-balancing binary search tree implementation (AVL Tree).
+*  It maintains O(log n) time complexity for insertions, deletions, and lookups by ensuring
+*  that the tree remains balanced using AVL rotations.
+*
+*  Key Features:
+*    - Automatic balancing via single and double rotations (left/right)
+*    - Support for insert, remove, and search operations
+*    - Iterator with element access
+*    - Height tracking and parent-pointer support for efficient upward traversal
+*    - Full support for deep copy and move semantics
+*    - Memory-safe node management using recursive destruction
+*
+*  Implementation Notes:
+*    - Node structure includes parent pointer and subtree height
+*    - Balancing is handled bottom-up after insertions and deletions
+*    - Rotations correctly update all parent/child relationships and height
+*    - Iterator supports basic arithmetic, dereferencing, and comparison
+*    - Tree uses recursive functions for destruction and copying
+*    - T must support default constructor, comparisons, and move semantics
+*
+*  Limitations:
+*    - Iterators become invalid after structural modifications (insert/remove)
+*    - Not thread-safe for concurrent modification or access
+*    - No support for custom allocators or memory pooling
+*
+*  Usage Recommendations:
+*    - Suitable for ordered data where fast insertion/deletion and lookup is needed
+*    - Avoid modifying the tree while iterating unless iterators are updated
+*    - Ensure type T fulfills required operations (see template assumptions)
 */
 #pragma once 
 #include <stdexcept>
@@ -254,8 +274,31 @@ private:
 		clear(node->left);
 		delete node;
 	}
-public:
 
+	//Function for balancing a tree
+	void balancing(Node* current) {
+		while (current) {
+			current->updateHeight();
+			if (current->balance() == -2) {
+				if (current->left && current->left->balance() == 1) {
+					current = doubleRightRotate(current);
+				}
+				else {
+					current = rightRotate(current);
+				}
+			}
+			else if (current->balance() == 2) {
+				if (current->right && current->right->balance() == -1) {
+					current = doubleLeftRotate(current);
+				}
+				else {
+					current = leftRotate(current);
+				}
+			}
+			current = current->parent;
+		}
+	}
+public:
 	//Constructor and destructor
 	AVLthree() : root(nullptr), count(0) {}
 	AVLthree(size_t _count, const T& value) {
@@ -278,9 +321,7 @@ public:
 		clear();
 	}
 
-
 	//--------------------------------- I T E R A T O R -----------------------------------
-
 	class Iterator {
 	private:
 		Node* current;
@@ -404,7 +445,6 @@ public:
 		}
 
 	};
-
 	//-------------------------------------------------------------------------------------
 
 	void remove(Node* node) {
@@ -412,6 +452,7 @@ public:
 			return;
 		}
 
+		Node* node_parent = node->parent;
 		if (!node->left && !node->right) {
 			if (node->parent) {
 				if (node->parent->right == node) {
@@ -471,26 +512,11 @@ public:
 			--count;
 		}
 
-
-		while (current) {
-			current->updateHeight();
-			if (current->balance() == -2) {
-				if (current->left && current->left->balance() == 1) {
-					current = doubleRightRotate(current);
-				}
-				else {
-					current = rightRotate(current);
-				}
-			}
-			if (current->balance() == 2) {
-				if (current->right && current->right->balance() == -1) {
-					current = doubleLeftRotate(current);
-				}
-				else {
-					current = leftRotate(current);
-				}
-			}
-			current = current->parent;
+		if (!node_parent) {
+			balancing(root);
+		}
+		else {
+			balancing(node_parent);
 		}
 	}
 
@@ -519,28 +545,7 @@ public:
 			}
 		}
 		++count;
-
-		while (current) {
-			current->updateHeight();
-			if (current->balance() == -2) {
-				if (current->left && current->left->balance() == 1) {
-					current = doubleRightRotate(current);
-				}
-				else {
-					current = rightRotate(current);
-				}
-			}
-			if (current->balance() == 2) {
-				if (current->right && current->right->balance() == -1) {
-					current = doubleLeftRotate(current);
-				}
-				else {
-					current = leftRotate(current);
-				}
-			}
-			current = current->parent;
-		}
-
+		balancing(current);
 	}
 
 	bool contains(const T& value) const {
