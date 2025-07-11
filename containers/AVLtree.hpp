@@ -34,8 +34,7 @@
 #pragma once 
 #include <stdexcept>
 
-
-template<typename T>
+template<typename T, typename Compare = std::less<T>>
 class AVLtree {
 private:
 	struct Node {
@@ -50,19 +49,11 @@ private:
 			data(_data), left(_left), right(_right), parent(_parent), height(_height) {}
 		Node(const Node& node) :
 			data(node.data), left(node.left), right(node.right), parent(node.parent), height(node.height) {}
-
-		~Node() {
-			if (left) {
-				delete left;
-			}
-			if (right) {
-				delete right;
-			}
-		}
+		~Node() = default;
 
 		//Calculates the balance factor of the current node, that is, the difference between the height of the right and left subtree.
-		size_t balance() const {
-			return ((left) ? left->height : 0) - ((right) ? right->height : 0);
+		int balance() const {
+			return ((right) ? right->height : 0) - ((left) ? left->height : 0);
 		}
 
 		//Updates the height field of the current node based on the heights of its children.
@@ -70,17 +61,17 @@ private:
 			height = std::max(((right) ? right->height : 0), ((left) ? left->height : 0)) + 1;
 		}
 
-		Node* minNode() const {
+		Node* minNode() {
 			Node* current = this;
-			while (left) {
+			while (current->left) {
 				current = current->left;
 			}
 			return current;
 		}
 
-		Node* maxNode() const {
+		Node* maxNode() {
 			Node* current = this;
-			while (right) {
+			while (current->right) {
 				current = current->right;
 			}
 			return current;
@@ -110,7 +101,9 @@ private:
 
 	Node* root = nullptr;
 	size_t count = 0;
+	Compare comp;
 
+	//Rotation functions
 	Node* rightRotate(Node* b) {
 		if (!b || !b->left) { return b; }
 		Node* a = b->left;
@@ -250,30 +243,16 @@ private:
 	}
 
 	//Function for copy constructor and copy =
-	Node* copyThree(const Node& node) {
+	Node* copyThree(Node* node) {
 		if (!node) {
 			return nullptr;
 		}
-
-		Node* newNode = new T(node);
-		
-		newNode->left = copyThree(node.left);
-		newNode->right = copyThree(node.right);
-
-
+		Node* newNode = new Node(*node);
+		newNode->left = copyThree(node->left);
+		newNode->right = copyThree(node->right);
 		return newNode;
 	}
 	
-	//Function for destructor
-	void clear(Node* node) {
-		if (!node) {
-			return;
-		}
-		clear(node->right);
-		clear(node->left);
-		delete node;
-	}
-
 	//Function for balancing a tree
 	void balancing(Node* current) {
 		while (current) {
@@ -297,6 +276,88 @@ private:
 			current = current->parent;
 		}
 	}
+
+	//The remove_uc (uncountable) function does not take count into account because additional recursion is called
+	void remove_uc(Node* node) {
+		if (!node) {
+			return;
+		}
+
+		Node* node_parent = node->parent;
+		if (!node->left && !node->right) {
+			if (node->parent) {
+				if (node->parent->right == node) {
+					node->parent->right = nullptr;
+				}
+				else {
+					node->parent->left = nullptr;
+				}
+			}
+			else {
+				root = nullptr;
+			}
+			delete node;
+		}
+		else if (node->left && node->right) {
+			Node* min = findMin(node->right);
+			node->data = min->data;
+			remove_uc(min);
+		}
+		else {
+			if (node->parent) {
+				if (node->parent->right == node) {
+					if (node->right) {
+						node->right->parent = node->parent;
+						node->parent->right = node->right;
+					}
+					else {
+						node->left->parent = node->parent;
+						node->parent->right = node->left;
+					}
+				}
+				else {
+					if (node->right) {
+						node->right->parent = node->parent;
+						node->parent->left = node->right;
+					}
+					else {
+						node->left->parent = node->parent;
+						node->parent->left = node->left;
+					}
+				}
+			}
+			else
+			{
+				if (node->right) {
+					root = node->right;
+					node->right->parent = nullptr;
+				}
+				else {
+					root = node->left;
+					node->left->parent = nullptr;
+				}
+			}
+			delete node;
+		}
+
+		if (!node_parent) {
+			balancing(root);
+		}
+		else {
+			balancing(node_parent);
+		}
+	}
+
+	//Function for destructor
+	void clear(Node* node) {
+		if (!node) { return; }
+		clear(node->left);
+		clear(node->right);
+		node->left = nullptr;
+		node->right = nullptr;
+		delete node;
+	}
+
 public:
 	//Constructor and destructor
 	AVLtree() : root(nullptr), count(0) {}
@@ -331,49 +392,53 @@ public:
 		Iterator(Node* _current, AVLtree* _parent_three) : current(_current), parent_three(_parent_three) {}
 		Iterator(const Iterator& other) : current(other.current), parent_three(other.parent_three) {}
 
-		void is_valid() const {
+		void is_valid() {
 			if (!current) {
 				throw std::runtime_error("Iterator equal nullptr");
 			}
 		}
 
 		T& operator*() {
-			is_valid(current);
-			return *current;
+			is_valid();
+			return (current->data);
 		}
 
 		T* operator->() {
-			is_valid(current);
-			return current;
+			is_valid();
+			return &(current->data);
 		}
 
 		const T& operator*() const {
-			is_valid(current);
-			return *current;
+			is_valid();
+			return (current->data);
 		}
 
 		const T* operator->() const {
-			is_valid(current);
-			return current;
+			is_valid();
+			return &(current->data);
 		}
 
 
 		// Increment/Decrement ------------------------------------------------
 		Iterator& operator++() {
+			if (!current) {
+				throw std::runtime_error("Attempt to increment end iterator");
+			}
+
 			if (current->right) {
 				current = current->right;
 				while (current->left) {
 					current = current->left;
 				}
-				return current;
 			}
-			while (current->parent) {
-				if (current->parent->left == current) {
-					return current->parent;
-				}
-				current = current->parent;
+			else {
+				Node* prev;
+				do {
+					prev = current;
+					current = current->parent;
+				} while (current && prev != current->left);
 			}
-			return current;
+			return *this;
 		}
 
 		Iterator operator++(int) {
@@ -383,22 +448,24 @@ public:
 		}
 
 		Iterator& operator--() {
+			if (!current) {
+				throw std::runtime_error("Attempt to increment end iterator");
+			}
+
 			if (current->left) {
 				current = current->left;
 				while (current->right) {
-					current->right;
+					current = current->right;
 				}
-				return current;
 			}
-			while (current->parent) {
-				if (current == current->parent->right) {
+			else {
+				Node* prev;
+				do {
+					prev = current;
 					current = current->parent;
-				}
-				else {
-					return current;
-				}
+				} while (current && prev != current->right);
 			}
-			return current;
+			return *this;
 		}
 
 		Iterator operator--(int) {
@@ -447,76 +514,8 @@ public:
 	//-------------------------------------------------------------------------------------
 
 	void remove(Node* node) {
-		if (!node) {
-			return;
-		}
-
-		Node* node_parent = node->parent;
-		if (!node->left && !node->right) {
-			if (node->parent) {
-				if (node->parent->right == node) {
-					node->parent->right = nullptr;
-				}
-				else {
-					node->parent->left = nullptr;
-				}
-			}
-			else {
-				root = nullptr;
-			}
-			delete node;
-			--count;
-		}
-		else if (node->left && node->right) {
-			Node* min = findMin(node->right);
-			node->data = min->data;
-			remove(min);
-			--count;
-		}
-		else {
-			if (node->parent) {
-				if (node->parent->right == node) {
-					if (node->right) {
-						node->right->parent = node->parent;
-						node->parent->right = node->right;
-					}
-					else {
-						node->left->parent = node->parent;
-						node->parent->right = node->left;
-					}
-				}
-				else {
-					if (node->right) {
-						node->right->parent = node->parent;
-						node->parent->left = node->right;
-					}
-					else {
-						node->left->parent = node->parent;
-						node->parent->left = node->left;
-					}
-				}
-			}
-			else
-			{
-				if (node->right) {
-					root = node->right;
-					node->right->parent = nullptr;
-				}
-				else {
-					root = node->left;
-					node->left->parent = nullptr;
-				}
-			}
-			delete node;
-			--count;
-		}
-
-		if (!node_parent) {
-			balancing(root);
-		}
-		else {
-			balancing(node_parent);
-		}
+		remove_uc(node);
+		--count;
 	}
 
 	void insert(const T& value) {
@@ -528,9 +527,10 @@ public:
 
 		Node* current = root;
 		while (current) {
-			if (value >= current->data) {
+			if (!comp(value , current->data)) {
 				if (!current->right) { 
 					current->right = new Node(value, nullptr, nullptr, current);
+					current = current->right;
 					break;
 				}
 				current = current->right;
@@ -538,6 +538,7 @@ public:
 			else {
 				if (!current->left) { 
 					current->left = new Node(value,nullptr,nullptr,current);
+					current = current->left;
 					break; 
 				}
 				current = current->left;
@@ -550,10 +551,10 @@ public:
 	bool contains(const T& value) const {
 		Node* current = root;
 		while (current) {
-			if (current->data == value) {
+			if (!comp(value, current->data) && !comp(current->data, value)) {
 				return true;
 			}
-			if (value >= current->data) {
+			if (comp(current->data, value)) {
 				if (!current->right) {
 					return false;
 				}
@@ -572,20 +573,14 @@ public:
 	Node* find(const T& value) const {
 		Node* current = root;
 		while (current) {
-			if (current->data == value) {
-				return current;
+			if (comp(value, current->data)) {
+				current = current->left;
 			}
-			if (value >= current->data) {
-				if (!current->right) {
-					return nullptr;
-				}
+			else if (comp(current->data, value)) {
 				current = current->right;
 			}
 			else {
-				if (!current->left) {
-					return nullptr;
-				}
-				current = current->left;
+				return current;
 			}
 		}
 		return nullptr;
@@ -627,12 +622,39 @@ public:
 		return count;
 	}
 
-	size_t height(Node* node = root) const {
+	size_t height(Node* node) const {
 		if (!node) {
 			return 0;
 		}
 
 		return std::max(height(node->left), height(node->right)) + 1;
+	}
+
+	Iterator begin() {
+		if (!root) {
+			return end();
+		}
+		return Iterator(root->minNode(), this);
+	}
+
+	Iterator end() {
+		return Iterator(nullptr, this);
+	}
+
+	const Iterator begin() const {
+		if (!root) {
+			return end();
+		}
+		return Iterator(root->minNode(), this);
+	}
+
+	const Iterator end() const {
+		return Iterator(nullptr, this);
+	}
+
+	//getter
+	Node* get_root() const {
+		return root;
 	}
 
 	//--------------------------------- O P E A T O R S -------------------------------------
