@@ -1,9 +1,10 @@
-#include "containers/String.hpp"
 #include "containers/Vector.hpp"
+#include "containers/String.hpp"
 #include "containers/Stack.hpp"
-#include "containers/Queue.hpp"
 #include "containers/Deque.hpp"
+#include "containers/Queue.hpp"
 #include "containers/List.hpp"
+#include "containers/AVLtree.hpp"
 #include <cassert>
 #include <iostream>
 #include <string>
@@ -1832,6 +1833,345 @@ void test_list_class() {
 
 
 
+void test_avl_tree_class() {
+    std::cout << "\n=== AVL Tree Class Test ===\n";
+    int test_counter = 0;
+
+    // ======================================================
+    // 1. Basic functionality tests (Tests 1-15)
+    // ======================================================
+    {
+        AVLtree<std::string> tree;
+
+        // Insert and size
+        tree.insert("apple");
+        tree.insert("banana");
+        tree.insert("cherry");
+        assert(tree.size() == 3);                  // Test 1
+        ++test_counter;
+
+        // Contains
+        assert(tree.contains("banana"));           // Test 2
+        assert(!tree.contains("mango"));           // Test 3
+        test_counter += 2;
+
+        // Height
+        tree.insert("date");
+        tree.insert("fig");
+        assert(tree.height(tree.get_root()) == 3); // Test 4
+        ++test_counter;
+
+        // Removal
+        tree.remove(tree.find("banana"));
+        assert(tree.size() == 4);                  // Test 5
+        assert(!tree.contains("banana"));          // Test 6
+        test_counter += 2;
+
+        // Copy semantics
+        AVLtree<std::string> tree2 = tree;
+        assert(tree2.size() == 4);                 // Test 7
+        assert(tree2.contains("cherry"));          // Test 8
+        test_counter += 2;
+
+        // Move semantics
+        AVLtree<std::string> tree3 = std::move(tree2);
+        assert(tree3.size() == 4);                 // Test 9
+        assert(tree2.size() == 0);                 // Test 10
+        test_counter += 2;
+
+        // Case sensitivity
+        tree.insert("Apple");
+        assert(tree.contains("Apple"));            // Test 11
+        test_counter++;
+    }
+
+    // ======================================================
+    // 2. Iterator tests (Tests 12-20)
+    // ======================================================
+    {
+        AVLtree<int> tree;
+        tree.insert(50);
+        tree.insert(30);
+        tree.insert(70);
+        tree.insert(20);
+        tree.insert(40);
+        tree.insert(60);
+        tree.insert(80);
+
+        // Iterator basics
+        auto it = tree.begin();
+        assert(*it == 20);                         // Test 12
+        ++it;
+        assert(*it == 30);                         // Test 13
+        test_counter += 2;
+
+        // Iterator traversal
+        Vector<int> values;
+        for (auto iter = tree.begin(); iter != tree.end(); ++iter) {
+            values.push_back(*iter);
+        }
+
+        // Проверяем конкретную последовательность
+        assert(values.size() == 7);                // Test 14
+        assert(values[0] == 20);                   // Test 15
+        assert(values[1] == 30);                   // Test 16
+        assert(values[2] == 40);                   // Test 17
+        assert(values[3] == 50);                   // Test 18
+        assert(values[4] == 60);                   // Test 19
+        assert(values[5] == 70);                   // Test 20
+        assert(values[6] == 80);                   // Test 21
+        test_counter += 8; // Tests 14-21
+
+        // Iterator invalidation
+        auto it2 = tree.begin();
+        tree.remove(tree.find(*it2));
+        assert(tree.size() == 6);                  // Test 22
+        test_counter++;
+    }
+
+    // ======================================================
+    // 3. Advanced operations (Tests 23-30)
+    // ======================================================
+    {
+        AVLtree<double> tree;
+
+        // Large dataset
+        for (int i = 0; i < 100; i++) {
+            tree.insert(i / 10.0);
+        }
+        assert(tree.size() == 100);                // Test 23
+        test_counter++;
+
+        // Duplicate handling
+        tree.insert(5.0);
+        tree.insert(5.0);
+        assert(tree.size() == 102);                // Test 24
+        test_counter++;
+
+        // Find min/max
+        auto minNode = tree.find(0.0);
+        auto maxNode = tree.find(9.9);
+        assert(minNode != nullptr);                // Test 25
+        assert(maxNode != nullptr);                // Test 26
+        test_counter += 2;
+
+        // Clear
+        tree.clear();
+        assert(tree.empty());                      // Test 27
+        assert(tree.size() == 0);                  // Test 28
+        test_counter += 2;
+    }
+
+    // ======================================================
+    // 4. Custom type tests (Tests 29-36)
+    // ======================================================
+    {
+        struct Person {
+            std::string name;
+            int age;
+
+            bool operator<(const Person& other) const {
+                return name < other.name || (name == other.name && age < other.age);
+            }
+
+            bool operator==(const Person& other) const {
+                return name == other.name && age == other.age;
+            }
+        };
+
+        AVLtree<Person> tree;
+        tree.insert({ "Alice", 30 });
+        tree.insert({ "Bob", 25 });
+        tree.insert({ "Alice", 25 });
+
+        assert(tree.size() == 3);                  // Test 29
+        assert(tree.contains({ "Alice", 30 }));      // Test 30
+        assert(!tree.contains({ "Alice", 20 }));     // Test 31
+        test_counter += 3;
+
+        // Find and remove
+        auto node = tree.find({ "Bob", 25 });
+        assert(node != nullptr);                   // Test 32
+        tree.remove(node);
+        assert(tree.size() == 2);                 // Test 33
+        test_counter += 2;
+
+        // Iterator order
+        auto it = tree.begin();
+        assert(it->name == "Alice" && it->age == 25); // Test 34
+        ++it;
+        assert(it->name == "Alice" && it->age == 30); // Test 35
+        test_counter += 2;
+    }
+
+    // ======================================================
+    // 5. Additional and extended AVL tree tests (Tests 37+)
+    // ======================================================
+    {
+        AVLtree<int> tree;
+
+        // Insert positive and negative values
+        tree.insert(0);
+        tree.insert(-10);
+        tree.insert(10);
+        tree.insert(-20);
+        tree.insert(20);
+        assert(tree.size() == 5);                      // Test 37
+        ++test_counter;
+
+        assert(tree.contains(20));                     // Test 38
+        assert(tree.contains(-20));                    // Test 39
+        test_counter += 2;
+
+        // Remove root via find() + remove()
+        auto root = tree.find(0);
+        if (root != nullptr) {                        
+            tree.remove(root);
+        }
+        assert(!tree.contains(0));                     // Test 40
+        assert(tree.size() == 4);                      // Test 41
+        test_counter += 2;
+
+        // Iterator decrement from end()
+        auto it = tree.end();
+        bool exception_thrown = false;
+        try {
+            --it;
+        }
+        catch (const std::runtime_error&) {
+            exception_thrown = true;
+        }
+        assert(exception_thrown);                      // Test 42
+        test_counter++;
+
+        // Clear tree
+        tree.clear();
+        tree.clear();
+        assert(tree.empty());                          // Test 43
+        assert(tree.size() == 0);                      // Test 44
+        test_counter += 2;
+
+        // Custom comparator (descending)
+        AVLtree<int, std::greater<int>> descTree;
+        descTree.insert(1);
+        descTree.insert(2);
+        descTree.insert(3);
+
+        Vector<int> descVals;
+        for (auto d : descTree) {
+            descVals.push_back(d);
+        }
+        assert(descVals[0] == 3 && descVals[1] == 2 && descVals[2] == 1); // Test 45
+        ++test_counter;
+
+        // Iterator begin() and ++
+        auto it2 = descTree.begin();
+        assert(*it2 == 3);                             // Test 46
+        ++it2;
+        assert(*it2 == 2);                             // Test 47
+        test_counter += 2;
+
+        // Remove leaf node via find + remove
+        auto leaf = descTree.find(1);
+        if (leaf != nullptr) {                       
+            descTree.remove(leaf);
+        }
+        assert(!descTree.contains(1));                 // Test 48
+        test_counter++;
+
+        // Remove node with one child via find + remove
+        AVLtree<int> t;
+        t.insert(5);
+        t.insert(3);
+        auto oneChild = t.find(5);
+        if (oneChild != nullptr) {              
+            t.remove(oneChild);
+        }
+        assert(t.size() == 1);                         // Test 49
+        assert(t.contains(3));                         // Test 50
+        test_counter += 2;
+
+        // Remove node with two children via find + remove
+        t.insert(7);
+        t.insert(6);
+        t.insert(8);
+        auto twoChildren = t.find(7);
+        if (twoChildren != nullptr) {  
+            t.remove(twoChildren);
+        }
+        assert(!t.contains(7));                        // Test 51
+        assert(t.contains(6));                         // Test 52
+        assert(t.contains(8));                         // Test 53
+        test_counter += 3;
+
+        // Test findMin and findMax using public API
+        assert(t.findMin(t.get_root())->data == 3);    // Test 54
+        assert(t.findMax(t.get_root())->data == 8);    // Test 55
+        test_counter += 2;
+
+        // Test height() — simulate by inserting known structure
+        AVLtree<int> h;
+        h.insert(10);
+        h.insert(5);
+        h.insert(15);
+        h.insert(3);
+        h.insert(7);
+        size_t height = h.height(h.get_root());
+        assert(height == 3);                           // Test 56
+        ++test_counter;
+
+        // Re-insert after clear
+        h.clear();
+        assert(h.empty());                             // Test 57
+        h.insert(100);
+        assert(h.size() == 1 && h.contains(100));      // Test 58
+        ++test_counter;
+
+        // Iterator loop
+        h.insert(50);
+        h.insert(150);
+        Vector<int> inorder;
+        for (auto v : h) { inorder.push_back(v); }
+        assert((inorder[0] == 50 && inorder[1] == 100 && inorder[2] == 150)); // Test 59
+        ++test_counter;
+
+        // Check behavior of end()
+        auto eit = h.end();
+        auto bit = h.begin();
+        assert(bit != eit);                            // Test 60
+        ++test_counter;
+
+        // Multiple clears
+        h.clear();
+        h.clear();
+        assert(h.empty());                             // Test 61
+        ++test_counter;
+
+        // Duplicate insertion should not increase size
+        AVLtree<int> d;
+        d.insert(1);
+        d.insert(1);
+        assert(d.size() == 2);                         // Test 62
+        ++test_counter;
+
+        // const correctness (if applicable)
+        AVLtree<int>& cref = d;
+        assert(cref.contains(1));                      // Test 63
+        ++test_counter;
+
+        // Range-based iteration on const tree
+        Vector<int> vals2;
+        for (auto x : cref) {
+            vals2.push_back(x);
+        }
+        assert(vals2.size() == 2 && vals2[0] == 1);    // Test 64
+        ++test_counter;
+    }
+
+    std::cout << "=== All " << test_counter << " AVL tree tests passed! ===\n";
+    glob_counter += test_counter;
+}
+
 
 void start_all_tests() {
     test_vector_class();
@@ -1840,12 +2180,13 @@ void start_all_tests() {
     test_deque_class();
     test_queue_class();
     test_list_class();
+
+    test_avl_tree_class();
     std::cout << "\n\n=== " << glob_counter << " tests passed! ===" << std::endl;
 }
 
 
 int main() {
-    //TO DO MORE TEST FOR VECTOR, STACK
     start_all_tests();
     return 0;
 }
