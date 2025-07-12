@@ -19,6 +19,7 @@ The project focuses on **code transparency**, **implementation details**, and **
 | Container                | Description                                          | Status        |
 |--------------------------|-----------------------------------------------------|---------------|
 | **`Vector`**             | Dynamic array with automatic resizing               | ✅ Complete  |
+| **`Array`**             | Array with specific size                            | ✅ Complete  |
 | **`String`**             | `std::string`-like class with memory management     | ✅ Complete   |
 | **`Stack`**              | LIFO stack                                          | ✅ Complete  |
 | **`Deque`**              | Double-ended queue (deque)                          | ✅ Complete |
