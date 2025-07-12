@@ -25,6 +25,7 @@
 *    - Iterators become invalid after structural modifications (insert/remove)
 *    - Not thread-safe for concurrent modification or access
 *    - No support for custom allocators or memory pooling
+*    - There is no support for constant objects
 *
 *  Usage Recommendations:
 *    - Suitable for ordered data where fast insertion/deletion and lookup is needed
