@@ -21,6 +21,7 @@
 */
 #pragma once
 #include <stdexcept>
+#include <string>
 
 
 class String {
@@ -35,7 +36,6 @@ public:
 		_data = new char[_capacity];
 		_data[0] = '\0';
 	}
-
 	String(const char* str) : _size(0), _capacity(10) {
 		if (str == nullptr) {
 			throw std::invalid_argument("nullptr passed to constructor");
@@ -62,20 +62,17 @@ public:
 		}
 		_data[_size] = '\0';
 	}
-
 	String(const String& other) : _size(other._size), _capacity(other._capacity) {
 		_data = new char[_capacity];
 		for (size_t i = 0; i <= _size; ++i) {
 			_data[i] = other._data[i];
 		}
 	}
-
 	String(String&& other) noexcept : _data(other._data), _size(other._size), _capacity(other._capacity) {
 		other._data = nullptr;
 		other._size = 0;
 		other._capacity = 0;
 	}
-
 	~String() {
 		delete[] _data;
 	}
@@ -417,6 +414,15 @@ public:
 
 		return *this;
 	}
+
+	String& operator+=(const char* cstr) {
+		return *this += String(cstr); 
+	}
+
+	String& operator+=(const std::string& other) {
+		return *this += String(other.c_str()); 
+	}
+
 
 	char& operator[](size_t index) {
 		return at(index);
