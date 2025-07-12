@@ -1,4 +1,5 @@
 #include "containers/Vector.hpp"
+#include "containers/Array.hpp"
 #include "containers/String.hpp"
 #include "containers/Stack.hpp"
 #include "containers/Deque.hpp"
@@ -148,6 +149,362 @@ void test_vector_class() {
     }
 
     std::cout << "=== All " << test_counter << " vector tests passed! ===\n";
+    glob_counter += test_counter;
+}
+
+
+void test_array_class() {
+    std::cout << "\n=== Array Class Test ===\n";
+    int test_counter = 0;
+
+    // ======================================================
+    // 1. Constructors and Basic Properties
+    // ======================================================
+    {
+        Array<int, 5> a1;
+        assert(a1.size() == 0 && a1.capacity() == 5); // Test 1
+        ++test_counter;
+
+        Array<int, 4> a2(2, 99);
+        assert(a2.size() == 2 && a2[0] == 99 && a2[1] == 99); // Test 2
+        ++test_counter;
+
+        bool caught = false;
+        try { Array<int, 2> a3(5, 1); }
+        catch (...) { caught = true; }
+        assert(caught); // Test 3
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 2. Push Back and Element Access
+    // ======================================================
+    {
+        Array<int, 3> a;
+        a.push_back(10);
+        a.push_back(20);
+        assert(a.size() == 2 && a[1] == 20); // Test 4
+        ++test_counter;
+
+        a[0] = 99;
+        assert(a[0] == 99); // Test 5
+        ++test_counter;
+
+        bool caught = false;
+        try { a[5]; }
+        catch (...) { caught = true; }
+        assert(caught); // Test 6
+        ++test_counter;
+
+        caught = false;
+        try { a.push_back(30); a.push_back(40); }
+        catch (...) { caught = true; }
+        assert(caught); // Test 7
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 3. Front and Back
+    // ======================================================
+    {
+        Array<int, 3> a;
+        a.push_back(5);
+        a.push_back(7);
+        assert(a.front() == 5 && a.back() == 7); // Test 8
+        ++test_counter;
+
+        a.push_back(9);
+        assert(a.back() == 9); // Test 9
+        ++test_counter;
+
+        bool caught = false;
+        try {
+            Array<int, 2> b;
+            b.front();
+        }
+        catch (...) { caught = true; }
+        assert(caught); // Test 10
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 4. Fill and Empty
+    // ======================================================
+    {
+        Array<int, 4> a;
+        a.push_back(1);
+        a.push_back(2);
+        a.fill(8);
+        assert(a[0] == 8 && a.size() == 4); // Test 11
+        ++test_counter;
+
+        Array<int, 3> b;
+        assert(b.empty()); // Test 12
+        ++test_counter;
+
+        b.push_back(1);
+        assert(!b.empty()); // Test 13
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 5. Iterators Basic
+    // ======================================================
+    {
+        Array<int, 3> a;
+        a.push_back(1);
+        a.push_back(2);
+        a.push_back(3);
+
+        auto it = a.begin();
+        assert(*it == 1); // Test 14
+        ++test_counter;
+
+        ++it;
+        assert(*it == 2); // Test 15
+        ++test_counter;
+
+        it++;
+        assert(*it == 3); // Test 16
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 6. Iterator Arithmetic and Comparison
+    // ======================================================
+    {
+        Array<int, 4> a;
+        for (int i = 0; i < 4; ++i) {
+            a.push_back(i + 1);
+        }
+
+        auto it = a.begin();
+        it += 2;
+        assert(*it == 3); // Test 17
+        ++test_counter;
+
+        it -= 1;
+        assert(*it == 2); // Test 18
+        ++test_counter;
+
+        assert((it + 1) == (a.begin() + 2)); // Test 19
+        ++test_counter;
+
+        assert((it + 1) != (it)); // Test 20
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 7. Copy Constructor and Assignment
+    // ======================================================
+    {
+        Array<int, 5> a;
+        a.push_back(10);
+        a.push_back(20);
+
+        Array<int, 5> b = a;
+        assert(b.size() == 2 && b[1] == 20); // Test 21
+        ++test_counter;
+
+        Array<int, 5> c;
+        c = a;
+        assert(c[0] == 10 && c.size() == 2); // Test 22
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 8. Move Constructor and Assignment
+    // ======================================================
+    {
+        Array<int, 5> a;
+        a.push_back(1);
+        a.push_back(2);
+
+        Array<int, 5> b = std::move(a);
+        assert(b.size() == 2 && b[1] == 2); // Test 23
+        ++test_counter;
+
+        Array<int, 5> c;
+        c = std::move(b);
+        assert(c.size() == 2 && c[0] == 1); // Test 24
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 9. Erase and Modify
+    // ======================================================
+    {
+        Array<int, 4> a;
+        a.push_back(10);
+        a.push_back(20);
+        a.push_back(30);
+
+        a[1] = 99;
+        assert(a[1] == 99); // Test 25
+        ++test_counter;
+
+        a.fill(7);
+        assert(a[2] == 7); // Test 26
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 10. toString Method
+    // ======================================================
+    {
+        Array<int, 3> a;
+        a.push_back(1);
+        a.push_back(2);
+        a.push_back(3);
+        String s = a.toString();
+        assert(s == "123"); // Test 27
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 11. Iterator Dereferencing and Arrow Operator
+    // ======================================================
+    {
+        struct Point { int x; };
+        Array<Point, 2> arr;
+        arr.push_back({ 10 });
+        auto it = arr.begin();
+        assert(it->x == 10); // Test 28
+        ++test_counter;
+
+        assert((*it).x == 10); // Test 29
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 12. End Iterator Position
+    // ======================================================
+    {
+        Array<int, 3> a;
+        a.push_back(1);
+        a.push_back(2);
+        a.push_back(3);
+
+        auto it = a.begin();
+        int sum = 0;
+        while (it != a.end()) {
+            sum += *it;
+            ++it;
+        }
+        assert(sum == 6); // Test 30
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 13. Iterator Decrement and Comparison
+    // ======================================================
+    {
+        Array<int, 3> a;
+        a.push_back(3);
+        a.push_back(2);
+        a.push_back(1);
+
+        auto it = a.begin() + 2;
+        assert(*it == 1); // Test 31
+        ++test_counter;
+
+        --it;
+        assert(*it == 2); // Test 32
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 14. Capacity & Size Invariants
+    // ======================================================
+    {
+        Array<char, 10> a;
+        for (int i = 0; i < 10; ++i) a.push_back('a');
+        assert(a.capacity() == 10 && a.size() == 10); // Test 33
+        ++test_counter;
+
+        bool caught = false;
+        try { a.push_back('x'); }
+        catch (...) { caught = true; }
+        assert(caught); // Test 34
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 15. Data Pointer Access
+    // ======================================================
+    {
+        Array<int, 2> a;
+        a.push_back(1);
+        a.push_back(2);
+        int* ptr = a.data();
+        assert(ptr[0] == 1 && ptr[1] == 2); // Test 35
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 16. Iterator Validity Checking
+    // ======================================================
+    {
+        Array<int, 1> a;
+        a.push_back(5);
+
+        auto it = a.end();
+        bool caught = false;
+        try { *it; }
+        catch (...) { caught = true; }
+        assert(caught); // Test 36
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 17. Iterator Comparison Operators
+    // ======================================================
+    {
+        Array<int, 3> a;
+        a.push_back(10);
+        a.push_back(20);
+        a.push_back(30);
+
+        auto it1 = a.begin();
+        auto it2 = a.begin() + 1;
+        assert(it1 != it2); // Test 37
+        ++test_counter;
+
+        ++it1;
+        assert(it1 == it2); // Test 38
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 18. Push/Pop Logic Testing
+    // ======================================================
+    {
+        Array<int, 3> a;
+        a.push_back(42);
+        a.push_back(24);
+        assert(a.back() == 24); // Test 39
+        ++test_counter;
+
+        a[1] = 100;
+        assert(a[1] == 100); // Test 40
+        ++test_counter;
+    }
+
+    // ======================================================
+    // 19. Iterator end() - 1 Dereferencing
+    // ======================================================
+    {
+        Array<int, 3> a;
+        a.push_back(42);
+        a.push_back(100);
+
+        auto it = a.end() - 1;
+        assert(*it == 100); // Test 41
+        ++test_counter;
+    }
+
+
+    std::cout << "=== All " << test_counter << " Array tests passed! ===\n";
     glob_counter += test_counter;
 }
 
@@ -1832,7 +2189,6 @@ void test_list_class() {
 }
 
 
-
 void test_avl_tree_class() {
     std::cout << "\n=== AVL Tree Class Test ===\n";
     int test_counter = 0;
@@ -2173,14 +2529,15 @@ void test_avl_tree_class() {
 }
 
 
+
 void start_all_tests() {
     test_vector_class();
+    test_array_class();
     test_string_class();
     test_stack_class();
     test_deque_class();
     test_queue_class();
     test_list_class();
-
     test_avl_tree_class();
     std::cout << "\n\n=== " << glob_counter << " tests passed! ===" << std::endl;
 }
