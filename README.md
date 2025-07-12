@@ -24,9 +24,7 @@ The project focuses on **code transparency**, **implementation details**, and **
 | **`Deque`**              | Double-ended queue (deque)                          | ✅ Complete |
 | **`Qeque`**              | FIFO data structure where elements are added to the rear and removed from the front. | ✅ Complete |
 | **`List`**               | Doubly linked list                                   | ✅ Complete   |
-| **`Map`**                | Associative array using a Red-Black Tree            | 🚧 In Progress   |
-| **`Set`**                |A set is an ordered, unique collection of elements   | 🚧 In Progress   |
-| **`AVL Tree`**           | Self-balancing AVL Tree                             | 🚧 In Progress |
+| **`AVL Tree`**           | Self-balancing AVL Tree                             | ✅ Complete  |
 
 ---
 
