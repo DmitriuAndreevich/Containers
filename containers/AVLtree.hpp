@@ -422,10 +422,7 @@ public:
 
 		// Increment/Decrement ------------------------------------------------
 		Iterator& operator++() {
-			if (!current) {
-				throw std::runtime_error("Attempt to increment end iterator");
-			}
-
+			is_valid();
 			if (current->right) {
 				current = current->right;
 				while (current->left) {
@@ -449,10 +446,7 @@ public:
 		}
 
 		Iterator& operator--() {
-			if (!current) {
-				throw std::runtime_error("Attempt to increment end iterator");
-			}
-
+			is_valid();
 			if (current->left) {
 				current = current->left;
 				while (current->right) {
