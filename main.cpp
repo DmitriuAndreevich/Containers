@@ -915,7 +915,7 @@ void test_stack_class() {
     // ======================================================
     {
         Stack<int> s;
-        assert(s.empty() == true);                     // Test 1
+        assert(s.empty());                     // Test 1
         ++test_counter;
 
         s.push(10);
@@ -2246,7 +2246,7 @@ void test_avl_tree_class() {
         // Move semantics
         AVLtree<std::string> tree3 = std::move(tree2);
         assert(tree3.size() == 4);                 // Test 9
-        assert(tree2.size() == 0);                 // Test 10
+        assert(tree2.empty());                 // Test 10
         test_counter += 2;
 
         // Case sensitivity
@@ -2319,8 +2319,8 @@ void test_avl_tree_class() {
         test_counter++;
 
         // Find min/max
-        auto minNode = tree.find(0.0);
-        auto maxNode = tree.find(9.9);
+        auto* minNode = tree.find(0.0);
+        auto* maxNode = tree.find(9.9);
         assert(minNode != nullptr);                // Test 25
         assert(maxNode != nullptr);                // Test 26
         test_counter += 2;
@@ -2328,7 +2328,7 @@ void test_avl_tree_class() {
         // Clear
         tree.clear();
         assert(tree.empty());                      // Test 27
-        assert(tree.size() == 0);                  // Test 28
+        assert(!(tree.size() > 0));                  // Test 28
         test_counter += 2;
     }
 
@@ -2360,7 +2360,7 @@ void test_avl_tree_class() {
         test_counter += 3;
 
         // Find and remove
-        auto node = tree.find({ "Bob", 25 });
+        auto* node = tree.find({ "Bob", 25 });
         assert(node != nullptr);                   // Test 32
         tree.remove(node);
         assert(tree.size() == 2);                 // Test 33
@@ -2394,7 +2394,7 @@ void test_avl_tree_class() {
         test_counter += 2;
 
         // Remove root via find() + remove()
-        auto root = tree.find(0);
+        auto* root = tree.find(0);
         if (root != nullptr) {                        
             tree.remove(root);
         }
@@ -2418,7 +2418,7 @@ void test_avl_tree_class() {
         tree.clear();
         tree.clear();
         assert(tree.empty());                          // Test 43
-        assert(tree.size() == 0);                      // Test 44
+        assert(!(tree.size() > 0));                      // Test 44
         test_counter += 2;
 
         // Custom comparator (descending)
@@ -2442,7 +2442,7 @@ void test_avl_tree_class() {
         test_counter += 2;
 
         // Remove leaf node via find + remove
-        auto leaf = descTree.find(1);
+        auto* leaf = descTree.find(1);
         if (leaf != nullptr) {                       
             descTree.remove(leaf);
         }
@@ -2453,7 +2453,7 @@ void test_avl_tree_class() {
         AVLtree<int> t;
         t.insert(5);
         t.insert(3);
-        auto oneChild = t.find(5);
+        auto* oneChild = t.find(5);
         if (oneChild != nullptr) {              
             t.remove(oneChild);
         }
@@ -2465,7 +2465,7 @@ void test_avl_tree_class() {
         t.insert(7);
         t.insert(6);
         t.insert(8);
-        auto twoChildren = t.find(7);
+        auto* twoChildren = t.find(7);
         if (twoChildren != nullptr) {  
             t.remove(twoChildren);
         }
@@ -2553,7 +2553,7 @@ void start_all_tests() {
     test_queue_class();
     test_list_class();
     test_avl_tree_class();
-    std::cout << "\n\n=== " << glob_counter << " tests passed! ===" << std::endl;
+    std::cout << "\n\n=== " << glob_counter << " tests passed! ===" << "\n";
 }
 
 
