@@ -22,7 +22,7 @@ void test_vector_class() {
     // ======================================================
     {
         Vector<int> v1;
-        assert(v1.empty() && v1.capacity() == 10 && !(v1.size() > 0)); // Test 1
+        assert(v1.empty() && v1.capacity() == 10 && v1.empty()); // Test 1
         ++test_counter;
 
         Vector<String> v2;
@@ -162,7 +162,7 @@ void test_array_class() {
     // ======================================================
     {
         Array<int, 5> a1;
-        assert(!(a1.size() > 0) && a1.capacity() == 5); // Test 1
+        assert(a1.empty() && a1.capacity() == 5); // Test 1
         ++test_counter;
 
         Array<int, 4> a2(2, 99);
@@ -1043,7 +1043,7 @@ void test_deque_class() {
         //Default constructor
         Deque<String> d1;
         assert(d1.empty());
-        assert(!(d1.size() > 0));
+        assert(d1.empty());
         assert(d1.max_size() >= 1);
         test_counter+=3;
 
@@ -1270,7 +1270,7 @@ void test_deque_class() {
             }
             else if (op == 4 && !d.empty()) {
                 size_t pos = rand() % d.size();
-                d.insert(d.begin() + pos, i);
+                d.insert(d.begin() + static_cast<std::ptrdiff_t>(pos), i);
                 ref.insert(i,ref.begin() + pos);
             }
             else if (op == 5 && !d.empty()) {
@@ -1514,7 +1514,7 @@ void test_queue_class() {
     // ======================================================
     {
         Queue<std::string> q;  
-        assert(!(q.size() > 0));                 // Test 34
+        assert(q.empty());                 // Test 34
         ++test_counter;
 
         // Test initial capacity
@@ -1543,7 +1543,6 @@ void test_queue_class() {
         test_counter += 3;
 
         // Reserve smaller than current
-        size_t prev_capacity = q2.size();
         q2.reserve(50);
         assert(q2.size() == 100);              // Test 42
         test_counter += 1;
@@ -1682,12 +1681,12 @@ void test_queue_class() {
         q1.push("");
         q1.push("");
         assert(q1.size() == 2);                // Test 57
-        assert(q1.front() == "");              // Test 58
-        assert(q1.back() == "");               // Test 59
+        assert(q1.front().empty());              // Test 58
+        assert(q1.back().empty());               // Test 59
         test_counter += 3;
 
         q1.pop();
-        assert(q1.front() == "");              // Test 60
+        assert(q1.front().empty());              // Test 60
         ++test_counter;
 
         // Long strings
@@ -1706,7 +1705,7 @@ void test_queue_class() {
 
         assert(q3.front() == "123");           // Test 62
         q3.pop();
-        assert(q3.front() == "");              // Test 63
+        assert(q3.front().empty());              // Test 63
         q3.pop();
         assert(q3.front() == " ");             // Test 64
         q3.pop();
@@ -1753,7 +1752,7 @@ void test_list_class() {
         // Tests for std::string
         List<String> str_list1;
         assert(str_list1.empty());                     // Test 1
-        assert(!(str_list1.size() > 0));                // Test 2
+        assert(str_list1.empty());                // Test 2
         test_counter += 2;
 
         List<String> str_list2(5, "A");
@@ -2329,7 +2328,7 @@ void test_avl_tree_class() {
         // Clear
         tree.clear();
         assert(tree.empty());                      // Test 27
-        assert(!(tree.size() > 0));                  // Test 28
+        assert(tree.empty());                  // Test 28
         test_counter += 2;
     }
 
@@ -2419,7 +2418,7 @@ void test_avl_tree_class() {
         tree.clear();
         tree.clear();
         assert(tree.empty());                          // Test 43
-        assert(!(tree.size() > 0));                      // Test 44
+        assert(tree.empty());                      // Test 44
         test_counter += 2;
 
         // Custom comparator (descending)
