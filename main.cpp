@@ -418,7 +418,9 @@ void test_array_class() {
     // ======================================================
     {
         Array<char, 10> a;
-        for (int i = 0; i < 10; ++i) a.push_back('a');
+        for (int i = 0; i < 10; ++i) { 
+            a.push_back('a'); 
+        }
         assert(a.capacity() == 10 && a.size() == 10); // Test 33
         ++test_counter;
 
@@ -568,7 +570,9 @@ void test_string_class() {
         assert(s == "A" && s.size() == 1); // Test 9
         ++test_counter;
 
-        for (char c : {'B', 'C', 'D'}) s.push_back(c);
+        for (char c : {'B', 'C', 'D'}) {
+            s.push_back(c);
+        }
         assert(s == "ABCD"); // Test 10
         ++test_counter;
 
@@ -911,7 +915,7 @@ void test_stack_class() {
     // ======================================================
     {
         Stack<int> s;
-        assert(s.empty());                     // Test 1
+        assert(s.empty() == true);                     // Test 1
         ++test_counter;
 
         s.push(10);
@@ -1211,8 +1215,12 @@ void test_deque_class() {
         // Mixed operations
         Deque<int> d2;
         for (int i = 0; i < 500; i++) {
-            if (i % 2 == 0) d2.push_front(i);
-            else d2.push_back(i);
+            if (i % 2 == 0) { 
+                d2.push_front(i);
+            }
+            else { 
+                d2.push_back(i);
+            }
         }
         assert(d2.size() == 500);
         ++test_counter;
@@ -1220,9 +1228,15 @@ void test_deque_class() {
         // Alternating operations
         Deque<int> d3;
         for (int i = 0; i < 1000; i++) {
-            if (i % 3 == 0) d3.push_front(i);
-            else if (i % 3 == 1) d3.push_back(i);
-            else if (d3.size() > 0) d3.pop_front();
+            if (i % 3 == 0) {
+                d3.push_front(i);
+            }
+            else if (i % 3 == 1) {
+                d3.push_back(i);
+            }
+            else if (d3.size() > 0) {
+                d3.pop_front();
+            }
         }
         assert(d3.size() > 300);
         ++test_counter;
@@ -2547,4 +2561,3 @@ int main() {
     start_all_tests();
     return 0;
 }
-
