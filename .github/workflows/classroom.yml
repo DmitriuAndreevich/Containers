@@ -52,8 +52,6 @@ jobs:
       - name: Code linting
         uses: amcp-pit/cpp-linter@v1
         with:
-          extra-args-before: '-xc++'
-          after-args: '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
       - name: Checkout
         uses: actions/checkout@v4
       - name: CPD
