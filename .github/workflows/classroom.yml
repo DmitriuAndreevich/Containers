@@ -54,7 +54,8 @@ jobs:
         with:
           extra-args-before: '-xc++'
           after-args: '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
-
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: CPD
         uses: amcp-pit/cpd-action@v1
         id: cpd
