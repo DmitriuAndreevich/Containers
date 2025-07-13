@@ -22,7 +22,7 @@ void test_vector_class() {
     // ======================================================
     {
         Vector<int> v1;
-        assert(v1.empty() && v1.capacity() == 10 && v1.size() == 0); // Test 1
+        assert(v1.empty() && v1.capacity() == 10 && !(v1.size() > 0)); // Test 1
         ++test_counter;
 
         Vector<String> v2;
@@ -162,7 +162,7 @@ void test_array_class() {
     // ======================================================
     {
         Array<int, 5> a1;
-        assert(a1.size() == 0 && a1.capacity() == 5); // Test 1
+        assert(!(a1.size() > 0) && a1.capacity() == 5); // Test 1
         ++test_counter;
 
         Array<int, 4> a2(2, 99);
@@ -804,7 +804,8 @@ void test_string_class() {
         assert(s.capacity() == 2); // Test 52
         ++test_counter;
 
-        String empty1, empty2;
+        String empty1;
+        String empty2;
         empty1 += empty2;
         assert(empty1.is_empty()); // Test 53
         ++test_counter;
@@ -1042,7 +1043,7 @@ void test_deque_class() {
         //Default constructor
         Deque<String> d1;
         assert(d1.empty());
-        assert(d1.size() == 0);
+        assert(!(d1.size() > 0));
         assert(d1.max_size() >= 1);
         test_counter+=3;
 
@@ -1352,7 +1353,7 @@ void test_deque_class() {
             d5.push_back(i);
         }
         try {
-            *it == 1;  // Iterator should not remain valid
+            *it = 1;  // Iterator should not remain valid
         }
         catch (...) {
             assert(true);
@@ -1513,7 +1514,7 @@ void test_queue_class() {
     // ======================================================
     {
         Queue<std::string> q;  
-        assert(q.size() == 0);                 // Test 34
+        assert(!(q.size() > 0));                 // Test 34
         ++test_counter;
 
         // Test initial capacity
@@ -1752,7 +1753,7 @@ void test_list_class() {
         // Tests for std::string
         List<String> str_list1;
         assert(str_list1.empty());                     // Test 1
-        assert(str_list1.size() == 0);                // Test 2
+        assert(!(str_list1.size() > 0));                // Test 2
         test_counter += 2;
 
         List<String> str_list2(5, "A");
@@ -1821,7 +1822,7 @@ void test_list_class() {
         assert(str_list[0] == "B");                   // Test 25
         test_counter += 2;
 
-        str_list.push_back(std::move("C"));
+        str_list.push_back("C");
         assert(str_list.size() == 3);                 // Test 26
         assert(str_list[2] == "C");                   // Test 27
         test_counter += 2;
