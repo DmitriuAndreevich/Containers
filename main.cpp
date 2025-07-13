@@ -22,7 +22,7 @@ void test_vector_class() {
     // ======================================================
     {
         Vector<int> v1;
-        assert(v1.empty() && v1.capacity() == 10 && v1.empty()); // Test 1
+        assert(v1.empty() && v1.capacity() == 10 && v1.size() == 0); // Test 1
         ++test_counter;
 
         Vector<String> v2;
@@ -162,7 +162,7 @@ void test_array_class() {
     // ======================================================
     {
         Array<int, 5> a1;
-        assert(a1.empty() && a1.capacity() == 5); // Test 1
+        assert(a1.size() == 0 && a1.capacity() == 5); // Test 1
         ++test_counter;
 
         Array<int, 4> a2(2, 99);
@@ -418,8 +418,8 @@ void test_array_class() {
     // ======================================================
     {
         Array<char, 10> a;
-        for (int i = 0; i < 10; ++i) { 
-            a.push_back('a'); 
+        for (int i = 0; i < 10; ++i) {
+            a.push_back('a');
         }
         assert(a.capacity() == 10 && a.size() == 10); // Test 33
         ++test_counter;
@@ -804,8 +804,7 @@ void test_string_class() {
         assert(s.capacity() == 2); // Test 52
         ++test_counter;
 
-        String empty1;
-        String empty2;
+        String empty1, empty2;
         empty1 += empty2;
         assert(empty1.is_empty()); // Test 53
         ++test_counter;
@@ -916,7 +915,7 @@ void test_stack_class() {
     // ======================================================
     {
         Stack<int> s;
-        assert(s.empty());                     // Test 1
+        assert(s.empty() == true);                     // Test 1
         ++test_counter;
 
         s.push(10);
@@ -1043,22 +1042,22 @@ void test_deque_class() {
         //Default constructor
         Deque<String> d1;
         assert(d1.empty());
-        assert(d1.empty());
+        assert(d1.size() == 0);
         assert(d1.max_size() >= 1);
-        test_counter+=3;
+        test_counter += 3;
 
         //Initial capacity
         Deque<std::string> d2(15);
         assert(d2.empty());
         assert(d2.max_size() == 15);
-        test_counter+=2;
+        test_counter += 2;
 
         //Initializer list constructor
         Deque<std::string> d3 = { "A", "B", "C" };
         assert(d3.size() == 3);
         assert(d3.front() == "A");
         assert(d3.back() == "C");
-        test_counter+=3;
+        test_counter += 3;
 
         //Push back/front
         Deque<std::string> d4;
@@ -1067,7 +1066,7 @@ void test_deque_class() {
         assert(d4.size() == 2);
         assert(d4.front() == "Y");
         assert(d4.back() == "X");
-        test_counter+=3;
+        test_counter += 3;
 
         //Pop back/front
         d4.pop_back();
@@ -1075,7 +1074,7 @@ void test_deque_class() {
         assert(d4.back() == "Y");
         d4.pop_front();
         assert(d4.empty());
-        test_counter+=3;
+        test_counter += 3;
     }
 
     // ====================== RING BUFFER BEHAVIOR ======================
@@ -1094,7 +1093,7 @@ void test_deque_class() {
         assert(d.size() == 3);
         assert(d.front() == 2);
         assert(d.back() == 4);
-        test_counter+=5;
+        test_counter += 5;
 
         //Front wrap-around
         d.push_front(5);
@@ -1102,7 +1101,7 @@ void test_deque_class() {
         assert(d.back() == 4);
         assert(d.size() == 4);
         assert(d.max_size() > 3);
-        test_counter+=4;
+        test_counter += 4;
     }
 
     // ====================== ELEMENT ACCESS & ITERATORS ======================
@@ -1151,7 +1150,7 @@ void test_deque_class() {
         d.insert(it, "C");
         assert(d.size() == 3);
         assert(d[1] == "C");
-        test_counter+=2;
+        test_counter += 2;
 
 
         //Insert causing reallocation
@@ -1160,14 +1159,14 @@ void test_deque_class() {
         assert(d.size() == 8);
         assert(d.max_size() >= old_capacity);
         assert(d[1] == "X");
-        test_counter+=3;
+        test_counter += 3;
 
         //Erase
         d.erase(d.begin() + 2, d.begin() + 5);
         assert(d.size() == 5);
         assert(d[2] == "X");
         assert(d[3] == "C");
-        test_counter+=3;
+        test_counter += 3;
     }
 
     // ====================== CAPACITY MANAGEMENT ======================
@@ -1216,10 +1215,10 @@ void test_deque_class() {
         // Mixed operations
         Deque<int> d2;
         for (int i = 0; i < 500; i++) {
-            if (i % 2 == 0) { 
+            if (i % 2 == 0) {
                 d2.push_front(i);
             }
-            else { 
+            else {
                 d2.push_back(i);
             }
         }
@@ -1254,7 +1253,7 @@ void test_deque_class() {
 
             if (op == 0) {
                 d.push_front(i);
-                ref.insert(i,ref.begin());
+                ref.insert(i, ref.begin());
             }
             else if (op == 1) {
                 d.push_back(i);
@@ -1270,8 +1269,8 @@ void test_deque_class() {
             }
             else if (op == 4 && !d.empty()) {
                 size_t pos = rand() % d.size();
-                d.insert(d.begin() + static_cast<std::ptrdiff_t>(pos), i);
-                ref.insert(i,ref.begin() + pos);
+                d.insert(d.begin() + pos, i);
+                ref.insert(i, ref.begin() + pos);
             }
             else if (op == 5 && !d.empty()) {
                 size_t pos = rand() % d.size();
@@ -1353,7 +1352,7 @@ void test_deque_class() {
             d5.push_back(i);
         }
         try {
-            *it = 1;  // Iterator should not remain valid
+            *it == 1;  // Iterator should not remain valid
         }
         catch (...) {
             assert(true);
@@ -1513,8 +1512,8 @@ void test_queue_class() {
     // 5. Capacity and Reservation
     // ======================================================
     {
-        Queue<std::string> q;  
-        assert(q.empty());                 // Test 34
+        Queue<std::string> q;
+        assert(q.size() == 0);                 // Test 34
         ++test_counter;
 
         // Test initial capacity
@@ -1532,7 +1531,7 @@ void test_queue_class() {
         test_counter += 2;
 
         // Manual reservation
-        Queue<std::string> q2;   
+        Queue<std::string> q2;
         q2.reserve(100);
         for (int i = 0; i < 100; ++i) {
             q2.push(std::to_string(i));
@@ -1543,6 +1542,7 @@ void test_queue_class() {
         test_counter += 3;
 
         // Reserve smaller than current
+        size_t prev_capacity = q2.size();
         q2.reserve(50);
         assert(q2.size() == 100);              // Test 42
         test_counter += 1;
@@ -1677,27 +1677,27 @@ void test_queue_class() {
     // ======================================================
     {
         // Empty strings
-        Queue<std::string> q1;   
+        Queue<std::string> q1;
         q1.push("");
         q1.push("");
         assert(q1.size() == 2);                // Test 57
-        assert(q1.front().empty());              // Test 58
-        assert(q1.back().empty());               // Test 59
+        assert(q1.front() == "");              // Test 58
+        assert(q1.back() == "");               // Test 59
         test_counter += 3;
 
         q1.pop();
-        assert(q1.front().empty());              // Test 60
+        assert(q1.front() == "");              // Test 60
         ++test_counter;
 
         // Long strings
         std::string long_str(1000, 'X');
-        Queue<std::string> q2;   
+        Queue<std::string> q2;
         q2.push(long_str);
         assert(q2.front() == long_str);        // Test 61
         ++test_counter;
 
         // Mixed content
-        Queue<std::string> q3;   
+        Queue<std::string> q3;
         q3.push("123");
         q3.push("");
         q3.push(" ");
@@ -1705,7 +1705,7 @@ void test_queue_class() {
 
         assert(q3.front() == "123");           // Test 62
         q3.pop();
-        assert(q3.front().empty());              // Test 63
+        assert(q3.front() == "");              // Test 63
         q3.pop();
         assert(q3.front() == " ");             // Test 64
         q3.pop();
@@ -1717,7 +1717,7 @@ void test_queue_class() {
     // 10. Stress Test
     // ======================================================
     {
-        Queue<std::string> q;   
+        Queue<std::string> q;
         const int N = 10000;
 
         for (int i = 0; i < N; ++i) {
@@ -1752,7 +1752,7 @@ void test_list_class() {
         // Tests for std::string
         List<String> str_list1;
         assert(str_list1.empty());                     // Test 1
-        assert(str_list1.empty());                // Test 2
+        assert(str_list1.size() == 0);                // Test 2
         test_counter += 2;
 
         List<String> str_list2(5, "A");
@@ -1821,7 +1821,7 @@ void test_list_class() {
         assert(str_list[0] == "B");                   // Test 25
         test_counter += 2;
 
-        str_list.push_back("C");
+        str_list.push_back(std::move("C"));
         assert(str_list.size() == 3);                 // Test 26
         assert(str_list[2] == "C");                   // Test 27
         test_counter += 2;
@@ -2246,7 +2246,7 @@ void test_avl_tree_class() {
         // Move semantics
         AVLtree<std::string> tree3 = std::move(tree2);
         assert(tree3.size() == 4);                 // Test 9
-        assert(tree2.empty());                 // Test 10
+        assert(tree2.size() == 0);                 // Test 10
         test_counter += 2;
 
         // Case sensitivity
@@ -2319,8 +2319,8 @@ void test_avl_tree_class() {
         test_counter++;
 
         // Find min/max
-        auto* minNode = tree.find(0.0);
-        auto* maxNode = tree.find(9.9);
+        auto minNode = tree.find(0.0);
+        auto maxNode = tree.find(9.9);
         assert(minNode != nullptr);                // Test 25
         assert(maxNode != nullptr);                // Test 26
         test_counter += 2;
@@ -2328,7 +2328,7 @@ void test_avl_tree_class() {
         // Clear
         tree.clear();
         assert(tree.empty());                      // Test 27
-        assert(tree.empty());                  // Test 28
+        assert(tree.size() == 0);                  // Test 28
         test_counter += 2;
     }
 
@@ -2360,7 +2360,7 @@ void test_avl_tree_class() {
         test_counter += 3;
 
         // Find and remove
-        auto* node = tree.find({ "Bob", 25 });
+        auto node = tree.find({ "Bob", 25 });
         assert(node != nullptr);                   // Test 32
         tree.remove(node);
         assert(tree.size() == 2);                 // Test 33
@@ -2394,8 +2394,8 @@ void test_avl_tree_class() {
         test_counter += 2;
 
         // Remove root via find() + remove()
-        auto* root = tree.find(0);
-        if (root != nullptr) {                        
+        auto root = tree.find(0);
+        if (root != nullptr) {
             tree.remove(root);
         }
         assert(!tree.contains(0));                     // Test 40
@@ -2418,7 +2418,7 @@ void test_avl_tree_class() {
         tree.clear();
         tree.clear();
         assert(tree.empty());                          // Test 43
-        assert(tree.empty());                      // Test 44
+        assert(tree.size() == 0);                      // Test 44
         test_counter += 2;
 
         // Custom comparator (descending)
@@ -2442,8 +2442,8 @@ void test_avl_tree_class() {
         test_counter += 2;
 
         // Remove leaf node via find + remove
-        auto* leaf = descTree.find(1);
-        if (leaf != nullptr) {                       
+        auto leaf = descTree.find(1);
+        if (leaf != nullptr) {
             descTree.remove(leaf);
         }
         assert(!descTree.contains(1));                 // Test 48
@@ -2453,8 +2453,8 @@ void test_avl_tree_class() {
         AVLtree<int> t;
         t.insert(5);
         t.insert(3);
-        auto* oneChild = t.find(5);
-        if (oneChild != nullptr) {              
+        auto oneChild = t.find(5);
+        if (oneChild != nullptr) {
             t.remove(oneChild);
         }
         assert(t.size() == 1);                         // Test 49
@@ -2465,8 +2465,8 @@ void test_avl_tree_class() {
         t.insert(7);
         t.insert(6);
         t.insert(8);
-        auto* twoChildren = t.find(7);
-        if (twoChildren != nullptr) {  
+        auto twoChildren = t.find(7);
+        if (twoChildren != nullptr) {
             t.remove(twoChildren);
         }
         assert(!t.contains(7));                        // Test 51
@@ -2553,7 +2553,7 @@ void start_all_tests() {
     test_queue_class();
     test_list_class();
     test_avl_tree_class();
-    std::cout << "\n\n=== " << glob_counter << " tests passed! ===" << "\n";
+    std::cout << "\n\n=== " << glob_counter << " tests passed! ===" << std::endl;
 }
 
 
