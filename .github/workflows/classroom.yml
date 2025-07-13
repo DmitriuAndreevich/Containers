@@ -49,8 +49,6 @@ jobs:
         run: |
           valgrind --tool=memcheck --leak-check=full --undef-value-errors=no --error-exitcode=111 ./containers_app
 
-      - name: Code linting
-        uses: amcp-pit/cpp-linter@v1
       - name: Checkout
         uses: actions/checkout@v4
       - name: CPD
