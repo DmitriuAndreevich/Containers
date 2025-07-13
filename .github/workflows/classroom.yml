@@ -51,7 +51,6 @@ jobs:
 
       - name: Code linting
         uses: amcp-pit/cpp-linter@v1
-        with:
       - name: Checkout
         uses: actions/checkout@v4
       - name: CPD
