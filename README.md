@@ -35,7 +35,7 @@ The project focuses on **code transparency**, **implementation details**, and **
 
 ---
 
-## 🎓 Educational Approach
+## Educational Approach
 
 We implement **divergent memory management strategies** across containers to demonstrate different C++ techniques:
 
@@ -60,6 +60,6 @@ This intentional contrast helps students:
 ---
 
 
-## 📜 License
+## License
 Distributed under the MIT License. See `LICENSE` for more information.  
 **Created for educational purposes** •
